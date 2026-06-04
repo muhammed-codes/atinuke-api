@@ -1,7 +1,7 @@
 services:
   - type: web
     name: atinuke-api
-    env: node
+    runtime: node
     region: frankfurt
     plan: free
     buildCommand: pnpm install && pnpm run build
