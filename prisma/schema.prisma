@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
+}
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+enum MarriageStatus {
+  CURRENT
+  DECEASED
+  DIVORCED
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+}
+
+enum UserRole {
+  MEMBER
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  DECLINED
+}
+
+model Body {
+  id            String        @id @default(uuid())
+  fullname      String
+  sex           Sex
+  dateOfBirth   DateTime
+  placeOfBirth  String
+  nickname      String?
+  phoneNumber   String?
+  occupation    String?
+  isAlive       Boolean       @default(true)
+  deathDate     String?
+  maritalStatus MaritalStatus @default(SINGLE)
+  notes         String?
+  createdBy     String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  fatherId       String?
+  father         Body?        @relation("BodyFather", fields: [fatherId], references: [id])
+  fatherChildren Body[]       @relation("BodyFather")
+
+  motherId       String?
+  mother         Body?        @relation("BodyMother", fields: [motherId], references: [id])
+  motherChildren Body[]       @relation("BodyMother")
+
+  photos     BodyPhoto[]
+
+  spousesAsA BodySpouse[] @relation("SpouseA")
+  spousesAsB BodySpouse[] @relation("SpouseB")
+
+  profile Profile?
+
+  @@map("bodies")
+}
+
+model BodyPhoto {
+  id        String   @id @default(uuid())
+  bodyId    String
+  body      Body     @relation(fields: [bodyId], references: [id], onDelete: Cascade)
+  url       String
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([bodyId, position])
+  @@map("body_photos")
+}
+
+model BodySpouse {
+  id           String         @id @default(uuid())
+  bodyIdA      String
+  bodyA        Body           @relation("SpouseA", fields: [bodyIdA], references: [id], onDelete: Cascade)
+  bodyIdB      String
+  bodyB        Body           @relation("SpouseB", fields: [bodyIdB], references: [id], onDelete: Cascade)
+  status       MarriageStatus @default(CURRENT)
+  marriageDate String?
+  endDate      String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@unique([bodyIdA, bodyIdB])
+  @@map("body_spouses")
+}
+
+model Profile {
+  id           String     @id
+  displayName  String
+  role         UserRole   @default(MEMBER)
+  status       UserStatus @default(PENDING)
+  bodyId       String?    @unique
+  body         Body?      @relation(fields: [bodyId], references: [id], onDelete: SetNull)
+  phoneNumber  String?
+  profilePhoto String?
+  bio          String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("profiles")
+}
