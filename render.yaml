@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: atinuke-api
+    env: node
+    region: frankfurt
+    plan: free
+    buildCommand: pnpm install && pnpm run build
+    startCommand: node dist/src/main
+    envVars:
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
