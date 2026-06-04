@@ -7,9 +7,14 @@ export class SupabaseJwtGuard extends AuthGuard('jwt') {
   handleRequest<TUser = AuthenticatedUser>(
     err: Error | null,
     user: TUser | false,
+    info: any,
   ): TUser {
-    if (err || !user) {
-      throw new UnauthorizedException('Missing or invalid token');
+    if (err) {
+      throw err;
+    }
+    if (!user) {
+      console.error('Passport Error Info:', info);
+      throw new UnauthorizedException(info?.message || 'Missing or invalid token');
     }
     return user;
   }

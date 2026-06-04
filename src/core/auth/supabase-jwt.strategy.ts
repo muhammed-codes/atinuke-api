@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { UserStatus } from '@prisma/client';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { passportJwtSecret } from 'jwks-rsa';
 import { CACHE_KEYS } from '../redis/redis.service';
 import { RedisService } from '../redis/redis.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -21,10 +22,18 @@ export class SupabaseJwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     private readonly redisService: RedisService,
     private readonly prismaService: PrismaService,
   ) {
+    const supabaseUrl = configService.get<string>('SUPABASE_URL')!;
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: configService.get<string>('SUPABASE_JWT_SECRET')!,
-      algorithms: ['HS256'],
+      ignoreExpiration: false,
+      secretOrKeyProvider: passportJwtSecret({
+        cache: true,
+        rateLimit: true,
+        jwksRequestsPerMinute: 5,
+        jwksUri: `${supabaseUrl}/auth/v1/.well-known/jwks.json`,
+      }),
+      algorithms: ['ES256'],
+      issuer: `${supabaseUrl}/auth/v1`,
     });
   }
 

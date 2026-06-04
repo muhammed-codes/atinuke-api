@@ -5,7 +5,6 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { Request, Response } from 'express';
 import { LoggerService } from '../../core/logger/logger.service';
 
@@ -25,18 +24,22 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       statusCode = exception.getStatus();
       const res = exception.getResponse();
       message = typeof res === 'string' ? res : (res as { message: string }).message;
-    } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
-      if (exception.code === 'P2002') {
+    } else if (exception instanceof Error && typeof (exception as any).code === 'string' && (exception as any).code.startsWith('P')) {
+      const code = (exception as any).code;
+      if (code === 'P2002') {
         statusCode = HttpStatus.CONFLICT;
-        const target = (exception.meta?.target as string[])?.join(', ') ?? 'field';
+        const target = ((exception as any).meta?.target as string[])?.join(', ') ?? 'field';
         message = `Unique constraint violation on: ${target}`;
-      } else if (exception.code === 'P2025') {
+      } else if (code === 'P2025') {
         statusCode = HttpStatus.NOT_FOUND;
         message = 'Record not found';
       } else {
         statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-        message = 'Internal server error';
+        message = `Database Error: ${exception.message}`;
       }
+    } else if (exception instanceof Error) {
+      // Temporarily expose the actual error message for debugging
+      message = exception.message;
     }
 
     if (statusCode >= 500) {
