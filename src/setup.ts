@@ -13,6 +13,10 @@ export function setupSwagger(app: INestApplication) {
     .setDescription("REST API for Atinuke Family Tree management")
     .setVersion("1.0")
     .addBearerAuth()
+    .addTag("Auth")
+    .addTag("Profile")
+    .addTag("Admin")
+    .addTag("Body")
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api/docs", app, document);
