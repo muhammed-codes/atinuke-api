@@ -1,5 +1,4 @@
 family-tree-build-prompt.md
 node_modules/
 .env
-.env.production
-.env.development
+dist/

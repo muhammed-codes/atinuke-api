@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v2 as cloudinary } from 'cloudinary';
 
-interface SignedUploadParams {
+export interface SignedUploadParams {
   signature: string;
   timestamp: number;
   cloudName: string;
