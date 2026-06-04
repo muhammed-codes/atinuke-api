@@ -28,11 +28,17 @@ export class AuthService {
     }
 
     if (data.user) {
+      // Check if this is the first user in the database
+      const userCount = await this.prisma.profile.count();
+      const isFirstUser = userCount === 0;
+
       // Create the profile in Prisma so the JWT strategy can find it
       await this.prisma.profile.create({
         data: {
           id: data.user.id,
           displayName: authCredentialsDto.email.split('@')[0], // Default display name based on email
+          role: isFirstUser ? 'ADMIN' : 'MEMBER',
+          status: isFirstUser ? 'APPROVED' : 'PENDING',
         },
       });
     }

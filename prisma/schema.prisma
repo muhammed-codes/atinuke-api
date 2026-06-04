@@ -42,7 +42,7 @@ model Body {
   dateOfBirth   DateTime
   placeOfBirth  String
   nickname      String?
-  phoneNumber   String?
+  phoneNumber   String?       @unique
   occupation    String?
   isAlive       Boolean       @default(true)
   deathDate     String?
@@ -105,7 +105,7 @@ model Profile {
   status       UserStatus @default(PENDING)
   bodyId       String?    @unique
   body         Body?      @relation(fields: [bodyId], references: [id], onDelete: SetNull)
-  phoneNumber  String?
+  phoneNumber  String?    @unique
   profilePhoto String?
   bio          String?
   createdAt    DateTime   @default(now())
