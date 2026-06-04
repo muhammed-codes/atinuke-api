@@ -11,6 +11,7 @@ import { ProfileModule } from './modules/profile/profile.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { EventsModule } from './events/events.module';
 import { RebuildTreeCacheCommand } from './commands/rebuild-tree-cache.command';
+import { AuthApiModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { RebuildTreeCacheCommand } from './commands/rebuild-tree-cache.command';
     BodyModule,
     ProfileModule,
     AdminModule,
+    AuthApiModule,
   ],
   providers: [RebuildTreeCacheCommand],
 })

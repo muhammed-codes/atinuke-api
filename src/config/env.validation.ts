@@ -4,6 +4,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3000),
   DATABASE_URL: z.string().url(),
+  SUPABASE_URL: z.string().url(),
+  SUPABASE_ANON_KEY: z.string().min(1),
   SUPABASE_JWT_SECRET: z.string().min(1),
   UPSTASH_REDIS_URL: z.string().url(),
   UPSTASH_REDIS_TOKEN: z.string().min(1),
