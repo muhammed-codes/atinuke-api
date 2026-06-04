@@ -10,6 +10,7 @@ import { BodyModule } from './modules/body/body.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { EventsModule } from './events/events.module';
+import { RebuildTreeCacheCommand } from './commands/rebuild-tree-cache.command';
 
 @Module({
   imports: [
@@ -27,5 +28,6 @@ import { EventsModule } from './events/events.module';
     ProfileModule,
     AdminModule,
   ],
+  providers: [RebuildTreeCacheCommand],
 })
 export class AppModule {}
