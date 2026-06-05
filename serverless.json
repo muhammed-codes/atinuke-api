@@ -1,0 +1,9 @@
+{
+  "description": "Serverless function settings for Vercel deployment.",
+  "functions": {
+    "dist/main.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
+}
