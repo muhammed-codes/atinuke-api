@@ -5,7 +5,7 @@ services:
     region: frankfurt
     plan: free
     buildCommand: pnpm install && pnpm run build
-    startCommand: node dist/src/main
+    startCommand: node dist/src/main.js
     envVars:
       - key: NODE_ENV
         value: production
