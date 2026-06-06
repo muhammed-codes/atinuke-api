@@ -1,15 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "dist/main.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 30,
-        "maxLambdaSize": "50mb"
-      }
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30
     }
-  ],
+  },
   "headers": [
     {
       "source": "/(.*)",
@@ -23,7 +18,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "dist/main.js"
+      "dest": "api/index.js"
     }
   ]
 }
