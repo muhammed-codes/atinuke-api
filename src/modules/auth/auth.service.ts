@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { AuthCredentialsDto } from './dto/auth.dto';
+import { AuthCredentialsDto, SignUpDto } from './dto/auth.dto';
 import { PrismaService } from '../../core/prisma/prisma.service';
 
 @Injectable()
@@ -17,10 +17,10 @@ export class AuthService {
     this.supabase = createClient(supabaseUrl, supabaseKey);
   }
 
-  async signUp(authCredentialsDto: AuthCredentialsDto) {
+  async signUp(signUpDto: SignUpDto) {
     const { data, error } = await this.supabase.auth.signUp({
-      email: authCredentialsDto.email,
-      password: authCredentialsDto.password,
+      email: signUpDto.email,
+      password: signUpDto.password,
     });
 
     if (error) {
@@ -36,7 +36,9 @@ export class AuthService {
       await this.prisma.profile.create({
         data: {
           id: data.user.id,
-          displayName: authCredentialsDto.email.split('@')[0], // Default display name based on email
+          displayName: signUpDto.displayName,
+          profilePhoto: signUpDto.profilePhoto,
+          bio: signUpDto.bio,
           role: isFirstUser ? 'ADMIN' : 'MEMBER',
           status: isFirstUser ? 'APPROVED' : 'PENDING',
         },

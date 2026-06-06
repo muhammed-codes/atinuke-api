@@ -1,7 +1,7 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { AuthCredentialsDto } from './dto/auth.dto';
+import { AuthCredentialsDto, SignUpDto } from './dto/auth.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -12,8 +12,8 @@ export class AuthController {
   @ApiOperation({ summary: 'Sign up a new user via Supabase' })
   @ApiResponse({ status: 201, description: 'User successfully registered' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
-  async signUp(@Body() authCredentialsDto: AuthCredentialsDto) {
-    return this.authService.signUp(authCredentialsDto);
+  async signUp(@Body() signUpDto: SignUpDto) {
+    return this.authService.signUp(signUpDto);
   }
 
   @Post('login')
