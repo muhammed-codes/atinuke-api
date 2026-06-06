@@ -5,15 +5,11 @@
       "src": "dist/main.js",
       "use": "@vercel/node",
       "config": {
+        "maxDuration": 30,
         "maxLambdaSize": "50mb"
       }
     }
   ],
-  "functions": {
-    "dist/main.js": {
-      "maxDuration": 30
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
