@@ -1,8 +1,10 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Post, Body, Get, Req, UseGuards, UnauthorizedException } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Request } from 'express';
 import { AuthService } from './auth.service';
-import { AuthCredentialsDto, SignUpDto } from './dto/auth.dto';
+import { AuthCredentialsDto, SignUpDto, ForgotPasswordDto, ChangePasswordDto } from './dto/auth.dto';
 import { ConfigService } from '@nestjs/config';
+import { SupabaseJwtGuard } from '../../core/auth/supabase-jwt.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -35,5 +37,29 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async logIn(@Body() authCredentialsDto: AuthCredentialsDto) {
     return this.authService.logIn(authCredentialsDto);
+  }
+
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Send password reset email' })
+  @ApiResponse({ status: 200, description: 'Email sent successfully' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(SupabaseJwtGuard)
+  @Post('change-password')
+  @ApiOperation({ summary: 'Change password using JWT token' })
+  @ApiResponse({ status: 200, description: 'Password changed successfully' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async changePassword(@Req() req: Request, @Body() changePasswordDto: ChangePasswordDto) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      throw new UnauthorizedException('No authorization header found');
+    }
+    const token = authHeader.split(' ')[1];
+    return this.authService.changePassword(token, changePasswordDto);
   }
 }

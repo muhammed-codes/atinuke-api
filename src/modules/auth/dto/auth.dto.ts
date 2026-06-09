@@ -27,3 +27,16 @@ export class SignUpDto extends AuthCredentialsDto {
   @IsString()
   bio?: string;
 }
+
+export class ForgotPasswordDto {
+  @ApiProperty({ example: "user@example.com" })
+  @IsEmail()
+  email!: string;
+}
+
+export class ChangePasswordDto {
+  @ApiProperty({ example: "NewP@ssw0rd" })
+  @IsString()
+  @MinLength(6)
+  password!: string;
+}

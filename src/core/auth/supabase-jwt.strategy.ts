@@ -4,6 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { UserStatus } from '@prisma/client';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
+import * as https from 'https';
 import { CACHE_KEYS, RedisService } from '../redis/redis.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthenticatedUser } from '../../common/types/authenticated-user.type';
@@ -34,7 +35,9 @@ export class SupabaseJwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       algorithms: ['ES256'],
     });
 
-    this.JWKS = createRemoteJWKSet(new URL(jwksUri));
+    this.JWKS = createRemoteJWKSet(new URL(jwksUri), {
+      agent: new https.Agent({ family: 4 })
+    });
     this.issuer = `${supabaseUrl}/auth/v1`;
   }
 

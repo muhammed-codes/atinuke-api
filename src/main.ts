@@ -17,7 +17,9 @@ const createApp = async () => {
   app.setGlobalPrefix("api");
   app.enableCors({
     origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
+    allowedHeaders: 'Content-Type, Accept, Authorization',
   });
   setupApp(app);
 

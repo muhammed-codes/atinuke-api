@@ -1,8 +1,17 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { AuthCredentialsDto, SignUpDto } from './dto/auth.dto';
-import { PrismaService } from '../../core/prisma/prisma.service';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import {
+  AuthCredentialsDto,
+  SignUpDto,
+  ForgotPasswordDto,
+  ChangePasswordDto,
+} from "./dto/auth.dto";
+import { PrismaService } from "../../core/prisma/prisma.service";
 
 @Injectable()
 export class AuthService {
@@ -12,8 +21,9 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
   ) {
-    const supabaseUrl = this.configService.get<string>('SUPABASE_URL') || '';
-    const supabaseKey = this.configService.get<string>('SUPABASE_ANON_KEY') || '';
+    const supabaseUrl = this.configService.get<string>("SUPABASE_URL") || "";
+    const supabaseKey =
+      this.configService.get<string>("SUPABASE_ANON_KEY") || "";
     this.supabase = createClient(supabaseUrl, supabaseKey);
   }
 
@@ -39,8 +49,8 @@ export class AuthService {
           displayName: signUpDto.displayName,
           profilePhoto: signUpDto.profilePhoto,
           bio: signUpDto.bio,
-          role: isFirstUser ? 'ADMIN' : 'MEMBER',
-          status: isFirstUser ? 'APPROVED' : 'PENDING',
+          role: isFirstUser ? "ADMIN" : "MEMBER",
+          status: isFirstUser ? "APPROVED" : "PENDING",
         },
       });
     }
@@ -58,5 +68,41 @@ export class AuthService {
       throw new UnauthorizedException(error.message);
     }
     return data;
+  }
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+    const { data, error } = await this.supabase.auth.resetPasswordForEmail(
+      forgotPasswordDto.email,
+      {
+        // Typically you'd pull this from an env var, but using a relative or standard path is fine
+        redirectTo: "http://localhost:3000/reset-password",
+      },
+    );
+
+    if (error) {
+      throw new BadRequestException(error.message);
+    }
+    return { message: "Password reset email sent successfully" };
+  }
+
+  async changePassword(token: string, changePasswordDto: ChangePasswordDto) {
+    const supabaseUrl = this.configService.get<string>("SUPABASE_URL") || "";
+    const supabaseKey =
+      this.configService.get<string>("SUPABASE_ANON_KEY") || "";
+
+    // Create a client initialized with the user's access token to update their password
+    const userClient = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+
+    const { data, error } = await userClient.auth.updateUser({
+      password: changePasswordDto.password,
+    });
+
+    if (error) {
+      throw new BadRequestException(error.message);
+    }
+
+    return { message: "Password changed successfully" };
   }
 }
