@@ -1,27 +1,13 @@
-import { Controller, Post, Body, Get, Req, UseGuards, UnauthorizedException } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { Request } from 'express';
+import { Controller, Post, Body } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto, SignUpDto, ForgotPasswordDto, ChangePasswordDto } from './dto/auth.dto';
-import { ConfigService } from '@nestjs/config';
 import { SupabaseJwtGuard } from '../../core/auth/supabase-jwt.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly configService: ConfigService
-  ) {}
-
-  @Get('test-env')
-  testEnv() {
-    return {
-      url: this.configService.get('SUPABASE_URL'),
-      key: this.configService.get('SUPABASE_ANON_KEY')?.substring(0, 5) + '...',
-      node_version: process.version
-    };
-  }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
   @ApiOperation({ summary: 'Sign up a new user via Supabase' })

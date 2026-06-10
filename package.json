@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Family Tree API",
   "main": "dist/main.js",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "build": "prisma generate && nest build",
     "start": "node dist/main.js",
