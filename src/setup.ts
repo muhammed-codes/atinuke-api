@@ -37,12 +37,14 @@ export function setupApp(app: INestApplication) {
     app.use("/api/docs", (req: Request, res: Response, next: NextFunction) => {
       const auth = req.headers["authorization"];
       if (!auth || !auth.startsWith("Basic ")) {
+        res.setHeader("WWW-Authenticate", 'Basic realm="Swagger Docs"');
         return res.status(401).json({ message: "Unauthorized" });
       }
       const [, encoded] = auth.split(" ");
       const decoded = Buffer.from(encoded, "base64").toString("utf-8");
       const [, password] = decoded.split(":");
       if (password !== process.env.SWAGGER_PASSWORD) {
+        res.setHeader("WWW-Authenticate", 'Basic realm="Swagger Docs"');
         return res.status(403).json({ message: "Forbidden" });
       }
       next();
