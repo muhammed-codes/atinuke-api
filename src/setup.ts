@@ -1,11 +1,16 @@
 import { INestApplication } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { NextFunction, Request, Response } from "express";
+import * as path from "node:path";
 import { GlobalExceptionFilter } from "./common/filters/global-exception.filter";
 import { ResponseInterceptor } from "./common/interceptors/response.interceptor";
 import { ValidationPipe } from "./common/pipes/validation.pipe";
 import { LoggerService } from "./core/logger/logger.service";
 import { Reflector } from "@nestjs/core";
+
+const swaggerUiDistPath = path.dirname(
+  require.resolve("swagger-ui-dist/package.json"),
+);
 
 export function setupSwagger(app: INestApplication) {
   const config = new DocumentBuilder()
@@ -19,7 +24,9 @@ export function setupSwagger(app: INestApplication) {
     .addTag("Body")
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api/docs", app, document);
+  SwaggerModule.setup("api/docs", app, document, {
+    customSwaggerUiPath: swaggerUiDistPath,
+  });
 }
 
 export function setupApp(app: INestApplication) {
