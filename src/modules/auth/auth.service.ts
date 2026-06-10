@@ -71,11 +71,13 @@ export class AuthService {
   }
 
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+    const frontendUrl =
+      this.configService.get<string>("FRONTEND_URL") || "http://localhost:3000";
+
     const { data, error } = await this.supabase.auth.resetPasswordForEmail(
       forgotPasswordDto.email,
       {
-        // Typically you'd pull this from an env var, but using a relative or standard path is fine
-        redirectTo: "http://localhost:3000/reset-password",
+        redirectTo: `${frontendUrl}/reset-password`,
       },
     );
 

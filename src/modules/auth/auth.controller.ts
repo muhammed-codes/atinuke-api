@@ -1,5 +1,6 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Post, Body, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto, SignUpDto, ForgotPasswordDto, ChangePasswordDto } from './dto/auth.dto';
 import { SupabaseJwtGuard } from '../../core/auth/supabase-jwt.guard';
