@@ -1,3 +1,9 @@
+import { UserRole } from '@prisma/client';
+import { CurrentUser } from '../../core/auth/decorators/current-user.decorator';
+import { Roles } from '../../core/auth/decorators/roles.decorator';
+import { SupabaseJwtGuard } from '../../core/auth/supabase-jwt.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { AuthenticatedUser } from '../../common/types/authenticated-user.type';
 import {
   Body,
   Controller,
@@ -19,12 +25,6 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
-import { CurrentUser } from '../../core/auth/decorators/current-user.decorator';
-import { Roles } from '../../core/auth/decorators/roles.decorator';
-import { SupabaseJwtGuard } from '../../core/auth/supabase-jwt.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { AuthenticatedUser } from '../../common/types/authenticated-user.type';
 import { BodyService } from './body.service';
 import { BodyTreeService } from './body-tree.service';
 import { AddSpouseDto } from './dto/add-spouse.dto';
