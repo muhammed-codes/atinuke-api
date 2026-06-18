@@ -105,6 +105,123 @@ export class BodyService {
     return this.findById(body.id);
   }
 
+  async createNuclearFamily(dto: import('./dto/create-nuclear-family.dto').CreateNuclearFamilyDto, createdBy: string) {
+    return this.prisma.$transaction(async (tx) => {
+      let fatherId: string | undefined = dto.father?.id;
+      let motherId: string | undefined = dto.mother?.id;
+
+      // Create father if details provided
+      if (dto.father?.details && !fatherId) {
+        const father = await tx.body.create({
+          data: {
+            fullname: dto.father.details.fullname,
+            sex: dto.father.details.sex,
+            dateOfBirth: new Date(dto.father.details.dateOfBirth),
+            placeOfBirth: dto.father.details.placeOfBirth,
+            nickname: dto.father.details.nickname,
+            phoneNumber: dto.father.details.phoneNumber,
+            occupation: dto.father.details.occupation,
+            isAlive: dto.father.details.isAlive,
+            deathDate: dto.father.details.deathDate,
+            maritalStatus: dto.father.details.maritalStatus,
+            notes: dto.father.details.notes,
+            createdBy,
+          },
+        });
+        if (dto.father.details.photos?.length) {
+          await tx.bodyPhoto.createMany({
+            data: dto.father.details.photos.map((url, position) => ({ bodyId: father.id, url, position })),
+          });
+        }
+        fatherId = father.id;
+      } else if (fatherId) {
+        const exists = await tx.body.findUnique({ where: { id: fatherId } });
+        if (!exists) throw new NotFoundException('Father not found');
+      }
+
+      // Create mother if details provided
+      if (dto.mother?.details && !motherId) {
+        const mother = await tx.body.create({
+          data: {
+            fullname: dto.mother.details.fullname,
+            sex: dto.mother.details.sex,
+            dateOfBirth: new Date(dto.mother.details.dateOfBirth),
+            placeOfBirth: dto.mother.details.placeOfBirth,
+            nickname: dto.mother.details.nickname,
+            phoneNumber: dto.mother.details.phoneNumber,
+            occupation: dto.mother.details.occupation,
+            isAlive: dto.mother.details.isAlive,
+            deathDate: dto.mother.details.deathDate,
+            maritalStatus: dto.mother.details.maritalStatus,
+            notes: dto.mother.details.notes,
+            createdBy,
+          },
+        });
+        if (dto.mother.details.photos?.length) {
+          await tx.bodyPhoto.createMany({
+            data: dto.mother.details.photos.map((url, position) => ({ bodyId: mother.id, url, position })),
+          });
+        }
+        motherId = mother.id;
+      } else if (motherId) {
+        const exists = await tx.body.findUnique({ where: { id: motherId } });
+        if (!exists) throw new NotFoundException('Mother not found');
+      }
+
+      // Link spouses
+      if (fatherId && motherId && dto.marriageDetails) {
+        const [pairA, pairB] = fatherId < motherId ? [fatherId, motherId] : [motherId, fatherId];
+        const existingSpouse = await tx.bodySpouse.findUnique({
+          where: { bodyIdA_bodyIdB: { bodyIdA: pairA, bodyIdB: pairB } },
+        });
+
+        if (!existingSpouse) {
+          await tx.bodySpouse.create({
+            data: {
+              bodyIdA: pairA,
+              bodyIdB: pairB,
+              status: dto.marriageDetails.status,
+              marriageDate: dto.marriageDetails.marriageDate,
+              endDate: dto.marriageDetails.endDate,
+            },
+          });
+        }
+      }
+
+      // Create children
+      const createdChildren = [];
+      for (const childDto of dto.children) {
+        const child = await tx.body.create({
+          data: {
+            fullname: childDto.fullname,
+            sex: childDto.sex,
+            dateOfBirth: new Date(childDto.dateOfBirth),
+            placeOfBirth: childDto.placeOfBirth,
+            nickname: childDto.nickname,
+            phoneNumber: childDto.phoneNumber,
+            occupation: childDto.occupation,
+            isAlive: childDto.isAlive,
+            deathDate: childDto.deathDate,
+            maritalStatus: childDto.maritalStatus,
+            notes: childDto.notes,
+            fatherId,
+            motherId,
+            createdBy,
+          },
+        });
+        if (childDto.photos?.length) {
+          await tx.bodyPhoto.createMany({
+            data: childDto.photos.map((url, position) => ({ bodyId: child.id, url, position })),
+          });
+        }
+        createdChildren.push(child);
+      }
+
+      this.eventEmitter.emit('tree-cache.invalidated', new TreeCacheInvalidatedEvent(createdBy));
+      return { success: true, fatherId, motherId, childrenCount: createdChildren.length };
+    });
+  }
+
   async updateBody(
     id: string,
     dto: UpdateBodyDto,

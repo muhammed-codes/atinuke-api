@@ -32,6 +32,7 @@ import { BodyPageDto } from './dto/body-page.dto';
 import { CreateBodyDto } from './dto/create-body.dto';
 import { UpdateBodyDto } from './dto/update-body.dto';
 import { UpdateSpouseStatusDto } from './dto/update-spouse-status.dto';
+import { CreateNuclearFamilyDto } from './dto/create-nuclear-family.dto';
 
 @ApiTags('Body')
 @ApiBearerAuth()
@@ -56,6 +57,19 @@ export class BodyController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.bodyService.createBody(dto, user.id);
+  }
+
+  @Post('nuclear-family')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Create a whole nuclear family at once (Admin only)' })
+  @ApiResponse({ status: 201, description: 'Nuclear family created successfully' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
+  async createNuclearFamily(
+    @Body() dto: CreateNuclearFamilyDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.bodyService.createNuclearFamily(dto, user.id);
   }
 
   @Get('tree')
