@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { MaritalStatus, Sex } from '@prisma/client';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -25,6 +25,7 @@ export class CreateBodyDto {
 
   @ApiPropertyOptional({ example: '1950-01-01' })
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsDateString()
   dateOfBirth?: string;
 
@@ -71,6 +72,7 @@ export class CreateBodyDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsString()
   deathDate?: string;
 

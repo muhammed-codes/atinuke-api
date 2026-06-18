@@ -50,9 +50,6 @@ export class BodyService {
   ) {}
 
   async createBody(dto: CreateBodyDto, createdBy: string): Promise<BodyWithRelations> {
-    if (!dto.isAlive && !dto.deathDate) {
-      throw new BadRequestException('deathDate is required when isAlive is false');
-    }
     if (dto.isAlive && dto.deathDate) {
       throw new BadRequestException('deathDate must not be set when isAlive is true');
     }
@@ -72,7 +69,7 @@ export class BodyService {
         data: {
           fullname: dto.fullname,
           sex: dto.sex,
-          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
+          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
           placeOfBirth: dto.placeOfBirth,
           nickname: dto.nickname,
           phoneNumber: dto.phoneNumber,
@@ -116,7 +113,7 @@ export class BodyService {
           data: {
             fullname: dto.father.details.fullname,
             sex: dto.father.details.sex,
-            dateOfBirth: dto.father.details.dateOfBirth ? new Date(dto.father.details.dateOfBirth) : null,
+            dateOfBirth: dto.father.details.dateOfBirth ? new Date(dto.father.details.dateOfBirth) : undefined,
             placeOfBirth: dto.father.details.placeOfBirth,
             nickname: dto.father.details.nickname,
             phoneNumber: dto.father.details.phoneNumber,
@@ -145,7 +142,7 @@ export class BodyService {
           data: {
             fullname: dto.mother.details.fullname,
             sex: dto.mother.details.sex,
-            dateOfBirth: dto.mother.details.dateOfBirth ? new Date(dto.mother.details.dateOfBirth) : null,
+            dateOfBirth: dto.mother.details.dateOfBirth ? new Date(dto.mother.details.dateOfBirth) : undefined,
             placeOfBirth: dto.mother.details.placeOfBirth,
             nickname: dto.mother.details.nickname,
             phoneNumber: dto.mother.details.phoneNumber,
@@ -195,7 +192,7 @@ export class BodyService {
           data: {
             fullname: childDto.fullname,
             sex: childDto.sex,
-            dateOfBirth: childDto.dateOfBirth ? new Date(childDto.dateOfBirth) : null,
+            dateOfBirth: childDto.dateOfBirth ? new Date(childDto.dateOfBirth) : undefined,
             placeOfBirth: childDto.placeOfBirth,
             nickname: childDto.nickname,
             phoneNumber: childDto.phoneNumber,
@@ -239,11 +236,8 @@ export class BodyService {
     }
 
     const isAlive = dto.isAlive ?? existing.isAlive;
-    const deathDate = dto.deathDate ?? existing.deathDate;
+    const deathDate = dto.deathDate !== undefined ? dto.deathDate : existing.deathDate;
 
-    if (!isAlive && !deathDate) {
-      throw new BadRequestException('deathDate is required when isAlive is false');
-    }
     if (isAlive && deathDate) {
       throw new BadRequestException('deathDate must not be set when isAlive is true');
     }

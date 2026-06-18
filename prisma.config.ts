@@ -1,4 +1,14 @@
 import path from 'path';
+import fs from 'fs';
+
+try {
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    process.loadEnvFile(envPath);
+  }
+} catch (e) {
+  // Ignore
+}
 import { defineConfig } from 'prisma/config';
 
 export default defineConfig({
