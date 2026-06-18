@@ -333,6 +333,29 @@ export class BodyService {
     this.eventEmitter.emit('tree-cache.invalidated', new TreeCacheInvalidatedEvent(actorId));
   }
 
+  async deleteBody(id: string, actorId: string): Promise<void> {
+    const existing = await this.prisma.body.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Body not found');
+
+    await this.prisma.$transaction(async (tx) => {
+      if (existing.sex === Sex.MALE) {
+        await tx.body.updateMany({
+          where: { fatherId: id },
+          data: { fatherId: null },
+        });
+      } else {
+        await tx.body.updateMany({
+          where: { motherId: id },
+          data: { motherId: null },
+        });
+      }
+
+      await tx.body.delete({ where: { id } });
+    });
+
+    this.eventEmitter.emit('tree-cache.invalidated', new TreeCacheInvalidatedEvent(actorId));
+  }
+
   private async validateSpouseCount(bodyId: string, sex: Sex): Promise<void> {
     const maxSpouses = sex === Sex.FEMALE ? 1 : 4;
 

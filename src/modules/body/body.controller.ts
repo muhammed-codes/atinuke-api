@@ -131,6 +131,20 @@ export class BodyController {
     return this.bodyService.updateSpouseStatus(id, spouseId, dto, user.id);
   }
 
+  @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Delete a body record (Admin only)' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: 200, description: 'Body deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Body not found' })
+  async deleteBody(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.bodyService.deleteBody(id, user.id);
+  }
+
   @Delete(':id/spouse/:spouseId')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
