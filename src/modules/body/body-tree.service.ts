@@ -53,9 +53,11 @@ export class BodyTreeService {
     const root =
       roots.length === 1
         ? roots[0]
-        : roots.sort(
-            (a, b) => new Date(a.dateOfBirth).getTime() - new Date(b.dateOfBirth).getTime(),
-          )[0];
+        : roots.sort((a, b) => {
+            const timeA = a.dateOfBirth ? new Date(a.dateOfBirth).getTime() : 0;
+            const timeB = b.dateOfBirth ? new Date(b.dateOfBirth).getTime() : 0;
+            return timeA - timeB;
+          })[0];
 
     if (!root) {
       throw new Error('No root body found (MALE with no parents)');

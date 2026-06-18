@@ -72,7 +72,7 @@ export class BodyService {
         data: {
           fullname: dto.fullname,
           sex: dto.sex,
-          dateOfBirth: new Date(dto.dateOfBirth),
+          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
           placeOfBirth: dto.placeOfBirth,
           nickname: dto.nickname,
           phoneNumber: dto.phoneNumber,
@@ -116,7 +116,7 @@ export class BodyService {
           data: {
             fullname: dto.father.details.fullname,
             sex: dto.father.details.sex,
-            dateOfBirth: new Date(dto.father.details.dateOfBirth),
+            dateOfBirth: dto.father.details.dateOfBirth ? new Date(dto.father.details.dateOfBirth) : null,
             placeOfBirth: dto.father.details.placeOfBirth,
             nickname: dto.father.details.nickname,
             phoneNumber: dto.father.details.phoneNumber,
@@ -145,7 +145,7 @@ export class BodyService {
           data: {
             fullname: dto.mother.details.fullname,
             sex: dto.mother.details.sex,
-            dateOfBirth: new Date(dto.mother.details.dateOfBirth),
+            dateOfBirth: dto.mother.details.dateOfBirth ? new Date(dto.mother.details.dateOfBirth) : null,
             placeOfBirth: dto.mother.details.placeOfBirth,
             nickname: dto.mother.details.nickname,
             phoneNumber: dto.mother.details.phoneNumber,
@@ -195,7 +195,7 @@ export class BodyService {
           data: {
             fullname: childDto.fullname,
             sex: childDto.sex,
-            dateOfBirth: new Date(childDto.dateOfBirth),
+            dateOfBirth: childDto.dateOfBirth ? new Date(childDto.dateOfBirth) : null,
             placeOfBirth: childDto.placeOfBirth,
             nickname: childDto.nickname,
             phoneNumber: childDto.phoneNumber,

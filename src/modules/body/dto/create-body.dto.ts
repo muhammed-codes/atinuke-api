@@ -23,9 +23,10 @@ export class CreateBodyDto {
   @IsEnum(Sex)
   sex: Sex;
 
-  @ApiProperty({ example: '1950-01-01' })
+  @ApiPropertyOptional({ example: '1950-01-01' })
+  @IsOptional()
   @IsDateString()
-  dateOfBirth: string;
+  dateOfBirth?: string;
 
   @ApiProperty()
   @IsString()

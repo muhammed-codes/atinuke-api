@@ -39,7 +39,7 @@ model Body {
   id            String        @id @default(uuid())
   fullname      String
   sex           Sex
-  dateOfBirth   DateTime
+  dateOfBirth   DateTime?
   placeOfBirth  String
   nickname      String?
   phoneNumber   String?
