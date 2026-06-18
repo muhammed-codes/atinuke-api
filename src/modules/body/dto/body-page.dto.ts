@@ -17,11 +17,11 @@ export class BodyPageDto extends PaginationDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsBoolean()
-  @Transform(({ value }: { value: string }) => {
-    if (value === 'true') return true;
-    if (value === 'false') return false;
-    return value;
+  @Transform(({ obj, value }) => {
+    const v = obj?.isAlive ?? value;
+    if (v === 'true' || v === true) return true;
+    if (v === 'false' || v === false) return false;
+    return undefined;
   })
   isAlive?: boolean;
 
