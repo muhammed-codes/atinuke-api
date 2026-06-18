@@ -32,6 +32,13 @@ import { ListUsersDto } from './dto/list-users.dto';
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
+  @Get('dashboard/stats')
+  @ApiOperation({ summary: 'Get aggregated stats for the admin dashboard' })
+  @ApiResponse({ status: 200, description: 'Dashboard stats returned successfully' })
+  async getDashboardStats() {
+    return this.adminService.getDashboardStats();
+  }
+
   @Get('users')
   @ApiOperation({ summary: 'List all users with optional filters (Admin only)' })
   @ApiResponse({ status: 200, description: 'Paginated user list' })

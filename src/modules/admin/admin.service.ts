@@ -124,4 +124,61 @@ export class AdminService {
 
     return updated;
   }
+
+  async getDashboardStats() {
+    const [
+      totalBodies,
+      aliveBodies,
+      genderStats,
+      maritalStats,
+      totalUsers,
+      userStatusStats,
+      recentPendingUsers,
+    ] = await Promise.all([
+      this.prisma.body.count(),
+      this.prisma.body.count({ where: { isAlive: true } }),
+      this.prisma.body.groupBy({ by: ['sex'], _count: { sex: true } }),
+      this.prisma.body.groupBy({ by: ['maritalStatus'], _count: { maritalStatus: true } }),
+      this.prisma.profile.count(),
+      this.prisma.profile.groupBy({ by: ['status'], _count: { status: true } }),
+      this.prisma.profile.findMany({
+        where: { status: 'PENDING' },
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    const genderDistribution = {
+      MALE: genderStats.find((g) => g.sex === 'MALE')?._count.sex ?? 0,
+      FEMALE: genderStats.find((g) => g.sex === 'FEMALE')?._count.sex ?? 0,
+    };
+
+    const maritalStatusDistribution = {
+      SINGLE: maritalStats.find((m) => m.maritalStatus === 'SINGLE')?._count.maritalStatus ?? 0,
+      MARRIED: maritalStats.find((m) => m.maritalStatus === 'MARRIED')?._count.maritalStatus ?? 0,
+      DIVORCED: maritalStats.find((m) => m.maritalStatus === 'DIVORCED')?._count.maritalStatus ?? 0,
+      WIDOWED: maritalStats.find((m) => m.maritalStatus === 'WIDOWED')?._count.maritalStatus ?? 0,
+    };
+
+    const userStatusDistribution = {
+      PENDING: userStatusStats.find((u) => u.status === 'PENDING')?._count.status ?? 0,
+      APPROVED: userStatusStats.find((u) => u.status === 'APPROVED')?._count.status ?? 0,
+      DECLINED: userStatusStats.find((u) => u.status === 'DECLINED')?._count.status ?? 0,
+    };
+
+    return {
+      bodies: {
+        total: totalBodies,
+        alive: aliveBodies,
+        deceased: totalBodies - aliveBodies,
+      },
+      genderDistribution,
+      maritalStatusDistribution,
+      users: {
+        total: totalUsers,
+        ...userStatusDistribution,
+      },
+      recentPendingUsers,
+    };
+  }
 }
