@@ -42,7 +42,7 @@ model Body {
   dateOfBirth   DateTime
   placeOfBirth  String
   nickname      String?
-  phoneNumber   String?       @unique
+  phoneNumber   String?
   occupation    String?
   isAlive       Boolean       @default(true)
   deathDate     String?
