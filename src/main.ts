@@ -16,7 +16,19 @@ const createApp = async () => {
 
   app.setGlobalPrefix("api");
   app.enableCors({
-    origin: true,
+    origin: (requestOrigin, callback) => {
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'https://bello-admin-tree.vercel.app',
+      ];
+      if (!requestOrigin || allowedOrigins.includes(requestOrigin)) {
+        callback(null, true);
+      } else {
+        // Fallback to allow any origin while we figure out production (acts like origin: true)
+        callback(null, true);
+      }
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
     allowedHeaders: 'Content-Type, Accept, Authorization',
