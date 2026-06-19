@@ -123,6 +123,8 @@ export class BodyService {
             deathDate: dto.father.details.deathDate,
             maritalStatus: dto.father.details.maritalStatus,
             notes: dto.father.details.notes,
+            fatherId: dto.father.details.fatherId,
+            motherId: dto.father.details.motherId,
             createdBy,
           },
         });
@@ -152,6 +154,8 @@ export class BodyService {
             deathDate: dto.mother.details.deathDate,
             maritalStatus: dto.mother.details.maritalStatus,
             notes: dto.mother.details.notes,
+            fatherId: dto.mother.details.fatherId,
+            motherId: dto.mother.details.motherId,
             createdBy,
           },
         });
