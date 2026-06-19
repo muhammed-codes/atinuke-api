@@ -5,48 +5,34 @@ import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import type { Express, Request, Response } from "express";
 import { AppModule } from "./app.module";
+import { corsOptions } from "./config/cors.config";
 import { setupApp } from "./setup";
 
 let server: Express | null = null;
 
-const createApp = async () => {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+const createApp = () => {
+  return NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true,
-  });
+  }).then((app) => {
+    app.setGlobalPrefix("api");
+    app.enableCors(corsOptions);
+    setupApp(app);
 
-  app.setGlobalPrefix("api");
-  app.enableCors({
-    origin: (requestOrigin, callback) => {
-      const allowedOrigins = [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'https://bello-admin-tree.vercel.app',
-      ];
-      if (!requestOrigin || allowedOrigins.includes(requestOrigin)) {
-        callback(null, true);
-      } else {
-        // Fallback to allow any origin while we figure out production (acts like origin: true)
-        callback(null, true);
-      }
-    },
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true,
-    allowedHeaders: 'Content-Type, Accept, Authorization',
+    return app;
   });
-  setupApp(app);
-
-  return app;
 };
 
-const getServer = async () => {
+const getServer = () => {
   if (server) {
-    return server;
+    return Promise.resolve(server);
   }
 
-  const app = await createApp();
-  await app.init();
-  server = app.getHttpAdapter().getInstance() as Express;
-  return server;
+  return createApp().then((app) => {
+    return app.init().then(() => {
+      server = app.getHttpAdapter().getInstance() as Express;
+      return server;
+    });
+  });
 };
 
 const handler = (request: Request, response: Response) => {
@@ -57,15 +43,20 @@ const handler = (request: Request, response: Response) => {
     });
 };
 
-const bootstrap = async () => {
-  const app = await createApp();
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
-  console.log(`Application is running on: http://localhost:${port}/api`);
+const bootstrap = () => {
+  return createApp().then((app) => {
+    const port = process.env.PORT || 3000;
+    return app.listen(port).then(() => {
+      console.log(`Application is running on: http://localhost:${port}/api`);
+    });
+  });
 };
 
 if (!process.env.VERCEL) {
-  bootstrap();
+  bootstrap().catch((error: Error) => {
+    console.error(error.message);
+    process.exit(1);
+  });
 }
 
 export default handler;

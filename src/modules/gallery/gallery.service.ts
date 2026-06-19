@@ -98,16 +98,33 @@ export class GalleryService {
     isPinned?: string;
     untagged?: string;
     mediaType?: 'PHOTO' | 'DOCUMENT';
+    isDeleted?: string;
+    startDate?: string;
+    endDate?: string;
   }) {
-    const where: any = {
-      deletedAt: null, // Don't show soft-deleted
-    };
+    const where: any = {};
+
+    if (query.isDeleted === 'true') {
+      where.deletedAt = { not: null };
+    } else {
+      where.deletedAt = null;
+    }
 
     if (query.albumId) where.albumId = query.albumId;
     if (query.bodyId) where.bodies = { some: { id: query.bodyId } };
     if (query.isPinned === 'true') where.isPinned = true;
     if (query.untagged === 'true') where.bodies = { none: {} };
     if (query.mediaType) where.mediaType = query.mediaType;
+
+    if (query.startDate || query.endDate) {
+      where.dateTaken = {};
+      if (query.startDate) where.dateTaken.gte = new Date(query.startDate);
+      if (query.endDate) {
+        const end = new Date(query.endDate);
+        end.setHours(23, 59, 59, 999);
+        where.dateTaken.lte = end;
+      }
+    }
 
     const media = await this.prisma.galleryMedia.findMany({
       where,
