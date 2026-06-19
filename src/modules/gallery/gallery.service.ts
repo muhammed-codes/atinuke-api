@@ -7,13 +7,21 @@ import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { ListMediaDto } from './dto/list-media.dto';
 
+const galleryMediaInclude = {
+  tags: true,
+  bodies: {
+    select: { id: true, fullname: true, profile: { select: { profilePhoto: true } } },
+  },
+  album: {
+    select: { id: true, name: true },
+  },
+} satisfies Prisma.GalleryMediaInclude;
+
 @Injectable()
 export class GalleryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // --- Albums ---
-
-  async createAlbum(userId: string, dto: CreateAlbumDto) {
+  createAlbum(userId: string, dto: CreateAlbumDto) {
     return this.prisma.galleryAlbum.create({
       data: {
         ...dto,
@@ -22,7 +30,7 @@ export class GalleryService {
     });
   }
 
-  async listAlbums() {
+  listAlbums() {
     return this.prisma.galleryAlbum.findMany({
       include: {
         _count: {
@@ -33,44 +41,35 @@ export class GalleryService {
     });
   }
 
-  async getAlbum(id: string) {
-    const album = await this.prisma.galleryAlbum.findUnique({
+  getAlbum(id: string) {
+    return this.prisma.galleryAlbum.findUnique({
       where: { id },
       include: { media: true },
+    }).then((album) => {
+      if (!album) {
+        throw new NotFoundException('Album not found');
+      }
+
+      return album;
     });
-    if (!album) throw new NotFoundException('Album not found');
-    return album;
   }
 
-  async updateAlbum(id: string, dto: UpdateAlbumDto) {
+  updateAlbum(id: string, dto: UpdateAlbumDto) {
     return this.prisma.galleryAlbum.update({
       where: { id },
       data: dto,
     });
   }
 
-  async deleteAlbum(id: string) {
+  deleteAlbum(id: string) {
     return this.prisma.galleryAlbum.delete({
       where: { id },
     });
   }
 
-  // --- Media ---
-
-  async createMedia(userId: string, dto: CreateMediaDto) {
+  createMedia(userId: string, dto: CreateMediaDto) {
     const { tags, bodyIds, dateTaken, ...rest } = dto;
-    
-    // Check for duplicates if hash is provided
-    if (rest.hash) {
-      const existing = await this.prisma.galleryMedia.findFirst({
-        where: { hash: rest.hash },
-      });
-      if (existing) {
-        return existing; // Or throw ConflictException based on design
-      }
-    }
-
-    return this.prisma.galleryMedia.create({
+    const createMedia = () => this.prisma.galleryMedia.create({
       data: {
         ...rest,
         dateTaken: dateTaken ? new Date(dateTaken) : undefined,
@@ -85,13 +84,23 @@ export class GalleryService {
           connect: bodyIds.map((id) => ({ id })),
         } : undefined,
       },
-      include: {
-        tags: true,
-        bodies: {
-          select: { id: true, fullname: true, profile: { select: { profilePhoto: true } } }
-        },
-      },
+      include: galleryMediaInclude,
     });
+
+    if (rest.hash) {
+      return this.prisma.galleryMedia.findFirst({
+        where: { hash: rest.hash },
+        include: galleryMediaInclude,
+      }).then((existing) => {
+        if (existing) {
+          return existing;
+        }
+
+        return createMedia();
+      });
+    }
+
+    return createMedia();
   }
 
   listMedia(query: ListMediaDto) {
@@ -121,15 +130,7 @@ export class GalleryService {
 
     return this.prisma.galleryMedia.findMany({
       where,
-      include: {
-        tags: true,
-        bodies: {
-          select: { id: true, fullname: true, profile: { select: { profilePhoto: true } } }
-        },
-        album: {
-          select: { id: true, name: true }
-        }
-      },
+      include: galleryMediaInclude,
       orderBy: [
         { dateTaken: 'desc' },
         { createdAt: 'desc' }
@@ -140,15 +141,7 @@ export class GalleryService {
   getMedia(id: string) {
     return this.prisma.galleryMedia.findUnique({
       where: { id },
-      include: {
-        tags: true,
-        bodies: {
-          select: { id: true, fullname: true, profile: { select: { profilePhoto: true } } },
-        },
-        album: {
-          select: { id: true, name: true },
-        },
-      },
+      include: galleryMediaInclude,
     }).then((media) => {
       if (!media) {
         throw new NotFoundException('Media not found');
@@ -158,7 +151,7 @@ export class GalleryService {
     });
   }
 
-  async updateMedia(id: string, dto: UpdateMediaDto) {
+  updateMedia(id: string, dto: UpdateMediaDto) {
     const { tags, bodyIds, dateTaken, ...rest } = dto;
 
     return this.prisma.galleryMedia.update({
@@ -168,7 +161,7 @@ export class GalleryService {
         ...(dateTaken && { dateTaken: new Date(dateTaken) }),
         ...(tags && {
           tags: {
-            set: [], // clear existing
+            set: [],
             connectOrCreate: tags.map((tag) => ({
               where: { name: tag },
               create: { name: tag },
@@ -177,50 +170,46 @@ export class GalleryService {
         }),
         ...(bodyIds && {
           bodies: {
-            set: bodyIds.map((bid) => ({ id: bid })), // override existing
+            set: bodyIds.map((bid) => ({ id: bid })),
           },
         }),
       },
-      include: {
-        tags: true,
-        bodies: true,
-      },
+      include: galleryMediaInclude,
     });
   }
 
-  async softDeleteMedia(id: string) {
+  softDeleteMedia(id: string) {
     return this.prisma.galleryMedia.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
   }
 
-  async restoreMedia(id: string) {
+  restoreMedia(id: string) {
     return this.prisma.galleryMedia.update({
       where: { id },
       data: { deletedAt: null },
     });
   }
 
-  async permanentlyDeleteMedia(id: string) {
+  permanentlyDeleteMedia(id: string) {
     return this.prisma.galleryMedia.delete({
       where: { id },
     });
   }
 
-  async getStorageStats() {
-    const totalMedia = await this.prisma.galleryMedia.count({
-      where: { deletedAt: null }
-    });
-    
-    const sizeResult = await this.prisma.galleryMedia.aggregate({
-      _sum: { sizeBytes: true },
-      where: { deletedAt: null }
-    });
-
-    return {
+  getStorageStats() {
+    return Promise.all([
+      this.prisma.galleryMedia.count({
+        where: { deletedAt: null }
+      }),
+      this.prisma.galleryMedia.aggregate({
+        _sum: { sizeBytes: true },
+        where: { deletedAt: null }
+      }),
+    ]).then(([totalMedia, sizeResult]) => ({
       totalMedia,
       totalSizeBytes: sizeResult._sum.sizeBytes || 0,
-    };
+    }));
   }
 }
