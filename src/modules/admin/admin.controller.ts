@@ -64,6 +64,15 @@ export class AdminController {
     return this.adminService.declineUser(id);
   }
 
+  @Put('users/:id/deactivate')
+  @ApiOperation({ summary: 'Deactivate a user account (Admin only)' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: 200, description: 'User deactivated' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async deactivateUser(@Param('id', ParseUUIDPipe) id: string) {
+    return this.adminService.deactivateUser(id);
+  }
+
   @Put('users/:id/promote')
   @ApiOperation({ summary: 'Promote user to Admin role (Admin only)' })
   @ApiParam({ name: 'id', type: String })

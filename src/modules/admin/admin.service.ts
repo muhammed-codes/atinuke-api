@@ -68,6 +68,20 @@ export class AdminService {
     return updated;
   }
 
+  async deactivateUser(id: string): Promise<Profile> {
+    const profile = await this.prisma.profile.findUnique({ where: { id } });
+    if (!profile) throw new NotFoundException('User not found');
+
+    const updated = await this.prisma.profile.update({
+      where: { id },
+      data: { status: UserStatus.DEACTIVATED },
+    });
+
+    await this.redis.del(CACHE_KEYS.USER_PROFILE(id));
+
+    return updated;
+  }
+
   async promoteToAdmin(id: string): Promise<Profile> {
     const profile = await this.prisma.profile.findUnique({ where: { id } });
     if (!profile) throw new NotFoundException('User not found');
@@ -164,6 +178,7 @@ export class AdminService {
       PENDING: userStatusStats.find((u) => u.status === 'PENDING')?._count.status ?? 0,
       APPROVED: userStatusStats.find((u) => u.status === 'APPROVED')?._count.status ?? 0,
       DECLINED: userStatusStats.find((u) => u.status === 'DECLINED')?._count.status ?? 0,
+      DEACTIVATED: userStatusStats.find((u) => u.status === 'DEACTIVATED')?._count.status ?? 0,
     };
 
     return {

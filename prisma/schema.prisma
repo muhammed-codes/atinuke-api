@@ -33,6 +33,7 @@ enum UserStatus {
   PENDING
   APPROVED
   DECLINED
+  DEACTIVATED
 }
 
 model Body {
