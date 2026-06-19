@@ -1,26 +1,27 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { GalleryService } from './gallery.service';
 import { CreateMediaDto } from './dto/create-media.dto';
 import { UpdateMediaDto } from './dto/update-media.dto';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { SupabaseJwtGuard } from '../../core/auth/supabase-jwt.guard';
+import { CurrentUser } from '../../core/auth/decorators/current-user.decorator';
+import { AuthenticatedUser } from '../../common/types/authenticated-user.type';
+import { ListMediaDto } from './dto/list-media.dto';
 
 @UseGuards(SupabaseJwtGuard)
 @Controller('gallery')
 export class GalleryController {
   constructor(private readonly galleryService: GalleryService) {}
 
-  // --- Stats ---
   @Get('stats')
   getStorageStats() {
     return this.galleryService.getStorageStats();
   }
 
-  // --- Albums ---
   @Post('albums')
-  createAlbum(@Req() req: any, @Body() dto: CreateAlbumDto) {
-    return this.galleryService.createAlbum(req.user.id, dto);
+  createAlbum(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateAlbumDto) {
+    return this.galleryService.createAlbum(user.id, dto);
   }
 
   @Get('albums')
@@ -43,34 +44,38 @@ export class GalleryController {
     return this.galleryService.deleteAlbum(id);
   }
 
-  // --- Media ---
   @Post('media')
-  createMedia(@Req() req: any, @Body() dto: CreateMediaDto) {
-    return this.galleryService.createMedia(req.user.id, dto);
+  createMedia(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateMediaDto) {
+    return this.galleryService.createMedia(user.id, dto);
   }
 
   @Get('media')
-  listMedia(@Query() query: any) {
+  listMedia(@Query() query: ListMediaDto) {
     return this.galleryService.listMedia(query);
   }
 
+  @Get('media/:id')
+  getMedia(@Param('id', ParseUUIDPipe) id: string) {
+    return this.galleryService.getMedia(id);
+  }
+
   @Patch('media/:id')
-  updateMedia(@Param('id') id: string, @Body() dto: UpdateMediaDto) {
+  updateMedia(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateMediaDto) {
     return this.galleryService.updateMedia(id, dto);
   }
 
   @Delete('media/:id')
-  softDeleteMedia(@Param('id') id: string) {
+  softDeleteMedia(@Param('id', ParseUUIDPipe) id: string) {
     return this.galleryService.softDeleteMedia(id);
   }
 
   @Post('media/:id/restore')
-  restoreMedia(@Param('id') id: string) {
+  restoreMedia(@Param('id', ParseUUIDPipe) id: string) {
     return this.galleryService.restoreMedia(id);
   }
 
   @Delete('media/:id/permanent')
-  permanentlyDeleteMedia(@Param('id') id: string) {
+  permanentlyDeleteMedia(@Param('id', ParseUUIDPipe) id: string) {
     return this.galleryService.permanentlyDeleteMedia(id);
   }
 }

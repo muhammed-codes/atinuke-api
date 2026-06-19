@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../core/prisma/prisma.service';
 import { CreateMediaDto } from './dto/create-media.dto';
 import { UpdateMediaDto } from './dto/update-media.dto';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
+import { ListMediaDto } from './dto/list-media.dto';
 
 @Injectable()
 export class GalleryService {
@@ -92,17 +94,8 @@ export class GalleryService {
     });
   }
 
-  async listMedia(query: {
-    albumId?: string;
-    bodyId?: string;
-    isPinned?: string;
-    untagged?: string;
-    mediaType?: 'PHOTO' | 'DOCUMENT';
-    isDeleted?: string;
-    startDate?: string;
-    endDate?: string;
-  }) {
-    const where: any = {};
+  listMedia(query: ListMediaDto) {
+    const where: Prisma.GalleryMediaWhereInput = {};
 
     if (query.isDeleted === 'true') {
       where.deletedAt = { not: null };
@@ -126,12 +119,12 @@ export class GalleryService {
       }
     }
 
-    const media = await this.prisma.galleryMedia.findMany({
+    return this.prisma.galleryMedia.findMany({
       where,
       include: {
         tags: true,
         bodies: {
-          select: { id: true, fullname: true }
+          select: { id: true, fullname: true, profile: { select: { profilePhoto: true } } }
         },
         album: {
           select: { id: true, name: true }
@@ -142,8 +135,27 @@ export class GalleryService {
         { createdAt: 'desc' }
       ],
     });
+  }
 
-    return media;
+  getMedia(id: string) {
+    return this.prisma.galleryMedia.findUnique({
+      where: { id },
+      include: {
+        tags: true,
+        bodies: {
+          select: { id: true, fullname: true, profile: { select: { profilePhoto: true } } },
+        },
+        album: {
+          select: { id: true, name: true },
+        },
+      },
+    }).then((media) => {
+      if (!media) {
+        throw new NotFoundException('Media not found');
+      }
+
+      return media;
+    });
   }
 
   async updateMedia(id: string, dto: UpdateMediaDto) {
