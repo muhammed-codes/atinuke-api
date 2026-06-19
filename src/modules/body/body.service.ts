@@ -36,6 +36,7 @@ export type BodyWithRelations = Body & {
     endDate: string | null;
   }[];
   children: BodyWithPhotos[];
+  siblings?: (BodyWithPhotos & { mother: { id: string; fullname: string } | null })[];
 };
 
 const BODY_WITH_PHOTOS_INCLUDE = {
@@ -326,10 +327,29 @@ export class BodyService {
       endDate: rel.endDate,
     }));
 
+    let siblings: any[] = [];
+    if (body.fatherId || body.motherId) {
+      siblings = await this.prisma.body.findMany({
+        where: {
+          id: { not: id },
+          OR: [
+            ...(body.fatherId ? [{ fatherId: body.fatherId }] : []),
+            ...(body.motherId ? [{ motherId: body.motherId }] : []),
+          ],
+        },
+        include: {
+          photos: { orderBy: { position: 'asc' as const } },
+          mother: { select: { id: true, fullname: true } },
+        },
+        orderBy: { dateOfBirth: 'asc' },
+      });
+    }
+
     return {
       ...body,
       spouses: [...spousesFromA, ...spousesFromB],
       children,
+      siblings,
     } as BodyWithRelations;
   }
 
