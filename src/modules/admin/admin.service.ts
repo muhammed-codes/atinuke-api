@@ -104,6 +104,10 @@ export class AdminService {
     const profile = await this.prisma.profile.findUnique({ where: { id } });
     if (!profile) throw new NotFoundException('User not found');
 
+    if (profile.status === UserStatus.DECLINED || profile.status === UserStatus.DEACTIVATED) {
+      throw new BadRequestException('Cannot link a declined or deactivated user');
+    }
+
     const body = await this.prisma.body.findUnique({ where: { id: dto.bodyId } });
     if (!body) throw new NotFoundException('Body not found');
 
