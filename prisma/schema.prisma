@@ -66,6 +66,8 @@ model Body {
   spousesAsA BodySpouse[] @relation("SpouseA")
   spousesAsB BodySpouse[] @relation("SpouseB")
 
+  galleryMedia GalleryMedia[]
+
   profile Profile?
 
   @@map("bodies")
@@ -113,4 +115,59 @@ model Profile {
   updatedAt    DateTime   @updatedAt
 
   @@map("profiles")
+}
+
+enum MediaType {
+  PHOTO
+  DOCUMENT
+}
+
+model GalleryAlbum {
+  id           String   @id @default(uuid())
+  name         String
+  description  String?
+  coverImageId String?
+  createdBy    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  media        GalleryMedia[]
+
+  @@map("gallery_albums")
+}
+
+model GalleryTag {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  media     GalleryMedia[]
+
+  @@map("gallery_tags")
+}
+
+model GalleryMedia {
+  id          String    @id @default(uuid())
+  url         String
+  mediaType   MediaType @default(PHOTO)
+  title       String?
+  caption     String?
+  dateTaken   DateTime?
+  isPinned    Boolean   @default(false)
+  isAdminOnly Boolean   @default(false)
+  hash        String?
+  sizeBytes   Int?
+  
+  albumId     String?
+  album       GalleryAlbum? @relation(fields: [albumId], references: [id], onDelete: SetNull)
+
+  createdBy   String
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tags        GalleryTag[]
+  bodies      Body[]
+
+  @@map("gallery_media")
 }
