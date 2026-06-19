@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Body, BodyPhoto, BodySpouse, MarriageStatus, Sex, UserRole } from '@prisma/client';
+import { Body, BodyPhoto, BodySpouse, MarriageStatus, Sex, UserRole, MediaType } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/types/authenticated-user.type';
 import { PaginatedResult, paginate } from '../../common/pagination/pagination.util';
 import { PrismaService } from '../../core/prisma/prisma.service';
@@ -93,6 +93,7 @@ export class BodyService {
             position,
           })),
         });
+        await this.syncPhotosToGallery(tx, created.id, created.fullname, dto.photos, createdBy);
       }
 
       return created;
@@ -132,6 +133,7 @@ export class BodyService {
           await tx.bodyPhoto.createMany({
             data: dto.father.details.photos.map((url, position) => ({ bodyId: father.id, url, position })),
           });
+          await this.syncPhotosToGallery(tx, father.id, father.fullname, dto.father.details.photos, createdBy);
         }
         fatherId = father.id;
       } else if (fatherId) {
@@ -163,6 +165,7 @@ export class BodyService {
           await tx.bodyPhoto.createMany({
             data: dto.mother.details.photos.map((url, position) => ({ bodyId: mother.id, url, position })),
           });
+          await this.syncPhotosToGallery(tx, mother.id, mother.fullname, dto.mother.details.photos, createdBy);
         }
         motherId = mother.id;
       } else if (motherId) {
@@ -215,6 +218,7 @@ export class BodyService {
           await tx.bodyPhoto.createMany({
             data: childDto.photos.map((url, position) => ({ bodyId: child.id, url, position })),
           });
+          await this.syncPhotosToGallery(tx, child.id, child.fullname, childDto.photos, createdBy);
         }
         createdChildren.push(child);
       }
@@ -283,6 +287,8 @@ export class BodyService {
           await tx.bodyPhoto.createMany({
             data: dto.photos.map((url, position) => ({ bodyId: id, url, position })),
           });
+          const currentFullname = dto.fullname ?? existing.fullname;
+          await this.syncPhotosToGallery(tx, id, currentFullname, dto.photos, user.id);
         }
       }
     });
@@ -505,6 +511,36 @@ export class BodyService {
       throw new BadRequestException(
         `${label} cannot have more than ${maxSpouses} spouse(s)`,
       );
+    }
+  }
+
+  private async syncPhotosToGallery(
+    tx: any, // Prisma.TransactionClient is complex to type properly without importing, any suffices inside $transaction
+    bodyId: string,
+    fullname: string,
+    photos: string[],
+    createdBy: string
+  ) {
+    if (!photos || photos.length === 0) return;
+
+    for (const url of photos) {
+      const existingMedia = await tx.galleryMedia.findFirst({ where: { url } });
+      if (!existingMedia) {
+        await tx.galleryMedia.create({
+          data: {
+            url,
+            title: fullname,
+            mediaType: MediaType.PHOTO,
+            createdBy,
+            bodies: { connect: { id: bodyId } }
+          }
+        });
+      } else {
+        await tx.galleryMedia.update({
+          where: { id: existingMedia.id },
+          data: { bodies: { connect: { id: bodyId } } }
+        });
+      }
     }
   }
 }
