@@ -23,6 +23,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { AdminService } from './admin.service';
 import { LinkBodyDto } from './dto/link-body.dto';
 import { ListUsersDto } from './dto/list-users.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('Admin')
 @ApiBearerAuth()
@@ -103,5 +104,17 @@ export class AdminController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async unlinkBody(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminService.unlinkBody(id);
+  }
+
+  @Put('users/:id')
+  @ApiOperation({ summary: 'Update user details (Admin only)' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: 200, description: 'User updated' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async updateUserDetails(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateUserDto,
+  ) {
+    return this.adminService.updateUserDetails(id, dto);
   }
 }

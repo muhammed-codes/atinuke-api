@@ -196,4 +196,20 @@ export class AdminService {
       recentPendingUsers,
     };
   }
+
+  async updateUserDetails(id: string, dto: { displayName?: string; phoneNumber?: string }): Promise<Profile> {
+    const profile = await this.prisma.profile.findUnique({ where: { id } });
+    if (!profile) throw new NotFoundException('User not found');
+
+    const updated = await this.prisma.profile.update({
+      where: { id },
+      data: {
+        ...(dto.displayName && { displayName: dto.displayName }),
+        ...(dto.phoneNumber !== undefined && { phoneNumber: dto.phoneNumber }),
+      },
+    });
+
+    await this.redis.del(CACHE_KEYS.USER_PROFILE(id));
+    return updated;
+  }
 }
