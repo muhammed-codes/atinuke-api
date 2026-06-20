@@ -12,6 +12,7 @@ import {
   ChangePasswordDto,
 } from "./dto/auth.dto";
 import { PrismaService } from "../../core/prisma/prisma.service";
+import { LoggerService } from "../../core/logger/logger.service";
 
 @Injectable()
 export class AuthService {
@@ -20,6 +21,7 @@ export class AuthService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly logger: LoggerService,
   ) {
     const supabaseUrl = this.configService.get<string>('SUPABASE_URL')!;
     const supabaseKey = this.configService.get<string>('SUPABASE_ANON_KEY')!;
@@ -33,15 +35,14 @@ export class AuthService {
     });
 
     if (error) {
+      this.logger.security('SIGNUP_FAILED', { email: signUpDto.email, reason: error.message }, 'AuthService');
       throw new BadRequestException(error.message);
     }
 
     if (data.user) {
-      // Check if this is the first user in the database
       const userCount = await this.prisma.profile.count();
       const isFirstUser = userCount === 0;
 
-      // Create the profile in Prisma so the JWT strategy can find it
       await this.prisma.profile.create({
         data: {
           id: data.user.id,
@@ -52,6 +53,8 @@ export class AuthService {
           status: isFirstUser ? "APPROVED" : "PENDING",
         },
       });
+
+      this.logger.log(`SIGNUP_SUCCESS: ${signUpDto.email} (role: ${isFirstUser ? 'ADMIN' : 'MEMBER'})`, 'AuthService');
     }
 
     return data;
@@ -64,8 +67,11 @@ export class AuthService {
     });
 
     if (error) {
+      this.logger.security('LOGIN_FAILED', { email: authCredentialsDto.email, reason: error.message }, 'AuthService');
       throw new UnauthorizedException(error.message);
     }
+
+    this.logger.log(`LOGIN_SUCCESS: ${authCredentialsDto.email}`, 'AuthService');
     return data;
   }
 
@@ -73,16 +79,17 @@ export class AuthService {
     const frontendUrl =
       this.configService.get<string>("FRONTEND_URL") || "http://localhost:3000";
 
-    const { data, error } = await this.supabase.auth.resetPasswordForEmail(
+    const { error } = await this.supabase.auth.resetPasswordForEmail(
       forgotPasswordDto.email,
-      {
-        redirectTo: `${frontendUrl}/reset-password`,
-      },
+      { redirectTo: `${frontendUrl}/reset-password` },
     );
 
     if (error) {
+      this.logger.security('PASSWORD_RESET_FAILED', { email: forgotPasswordDto.email, reason: error.message }, 'AuthService');
       throw new BadRequestException(error.message);
     }
+
+    this.logger.log(`PASSWORD_RESET_REQUESTED: ${forgotPasswordDto.email}`, 'AuthService');
     return { message: "Password reset email sent successfully" };
   }
 
@@ -103,9 +110,11 @@ export class AuthService {
     });
 
     if (error) {
+      this.logger.security('PASSWORD_CHANGE_FAILED', { userId, reason: error.message }, 'AuthService');
       throw new BadRequestException(error.message);
     }
 
+    this.logger.log(`PASSWORD_CHANGE_SUCCESS: userId=${userId}`, 'AuthService');
     return { message: 'Password changed successfully' };
   }
 }

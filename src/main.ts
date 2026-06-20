@@ -4,6 +4,7 @@ setDefaultResultOrder("ipv4first");
 import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import type { Express, Request, Response } from "express";
+import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { corsOptions } from "./config/cors.config";
 import { setupApp } from "./setup";
@@ -14,6 +15,20 @@ const createApp = () => {
   return NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true,
   }).then((app) => {
+    app.set('trust proxy', 1);
+    app.use(
+      helmet({
+        hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'"],
+            objectSrc: ["'none'"],
+            upgradeInsecureRequests: [],
+          },
+        },
+      }),
+    );
     app.setGlobalPrefix("api");
     app.enableCors(corsOptions);
     setupApp(app);

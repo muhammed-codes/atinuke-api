@@ -3,6 +3,7 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { NextFunction, Request, Response } from "express";
 import * as path from "node:path";
 import { GlobalExceptionFilter } from "./common/filters/global-exception.filter";
+import { HttpLoggingInterceptor } from "./common/interceptors/http-logging.interceptor";
 import { ResponseInterceptor } from "./common/interceptors/response.interceptor";
 import { ValidationPipe } from "./common/pipes/validation.pipe";
 import { LoggerService } from "./core/logger/logger.service";
@@ -36,7 +37,10 @@ export function setupApp(app: INestApplication) {
   app.useLogger(logger);
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new GlobalExceptionFilter(logger));
-  app.useGlobalInterceptors(new ResponseInterceptor(reflector));
+  app.useGlobalInterceptors(
+    new HttpLoggingInterceptor(logger),
+    new ResponseInterceptor(reflector),
+  );
 
   if (process.env.NODE_ENV !== "production") {
     setupSwagger(app);

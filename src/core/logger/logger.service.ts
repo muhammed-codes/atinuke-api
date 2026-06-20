@@ -42,4 +42,8 @@ export class LoggerService implements NestLoggerService {
   verbose(message: string, context?: string): void {
     this.logger.trace({ context }, message);
   }
+
+  security(message: string, meta: Record<string, unknown> = {}, context?: string): void {
+    this.logger.warn({ context, security: true, ...meta }, message);
+  }
 }
