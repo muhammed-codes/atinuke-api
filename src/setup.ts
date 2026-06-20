@@ -7,6 +7,7 @@ import { HttpLoggingInterceptor } from "./common/interceptors/http-logging.inter
 import { ResponseInterceptor } from "./common/interceptors/response.interceptor";
 import { ValidationPipe } from "./common/pipes/validation.pipe";
 import { LoggerService } from "./core/logger/logger.service";
+import { ActivityLogService } from "./modules/activity-log/activity-log.service";
 import { Reflector } from "@nestjs/core";
 
 const swaggerUiDistPath = path.dirname(
@@ -37,8 +38,11 @@ export function setupApp(app: INestApplication) {
   app.useLogger(logger);
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new GlobalExceptionFilter(logger));
+
+  const activityLogService = app.get(ActivityLogService, { strict: false });
+
   app.useGlobalInterceptors(
-    new HttpLoggingInterceptor(logger),
+    new HttpLoggingInterceptor(logger, activityLogService),
     new ResponseInterceptor(reflector),
   );
 

@@ -15,6 +15,7 @@ import { EventsModule } from './events/events.module';
 import { RebuildTreeCacheCommand } from './commands/rebuild-tree-cache.command';
 import { AuthApiModule } from './modules/auth/auth.module';
 import { GalleryModule } from './modules/gallery/gallery.module';
+import { ActivityLogModule } from './modules/activity-log/activity-log.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { GalleryModule } from './modules/gallery/gallery.module';
     AdminModule,
     AuthApiModule,
     GalleryModule,
+    ActivityLogModule,
   ],
   providers: [
     RebuildTreeCacheCommand,

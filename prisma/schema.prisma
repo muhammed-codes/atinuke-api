@@ -36,6 +36,23 @@ enum UserStatus {
   DEACTIVATED
 }
 
+enum LogLevel {
+  INFO
+  WARN
+  ERROR
+  SECURITY
+}
+
+enum LogCategory {
+  AUTH
+  ADMIN
+  GALLERY
+  BODY
+  PROFILE
+  NAVIGATION
+  SYSTEM
+}
+
 model Body {
   id            String        @id @default(uuid())
   fullname      String
@@ -170,4 +187,27 @@ model GalleryMedia {
   bodies      Body[]
 
   @@map("gallery_media")
+}
+
+model ActivityLog {
+  id          String      @id @default(uuid())
+  userId      String?
+  userDisplay String?
+  action      String
+  category    LogCategory
+  level       LogLevel    @default(INFO)
+  method      String?
+  path        String?
+  statusCode  Int?
+  durationMs  Int?
+  ip          String?
+  userAgent   String?
+  metadata    Json?
+  createdAt   DateTime    @default(now())
+
+  @@index([userId])
+  @@index([category])
+  @@index([level])
+  @@index([createdAt])
+  @@map("activity_logs")
 }
