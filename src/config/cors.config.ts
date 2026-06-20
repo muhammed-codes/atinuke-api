@@ -3,6 +3,7 @@ import type { CorsOptions } from "@nestjs/common/interfaces/external/cors-option
 const defaultAllowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
+  "http://localhost:5173",
   "https://bello-admin-tree.vercel.app",
 ];
 
