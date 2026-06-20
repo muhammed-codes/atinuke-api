@@ -78,7 +78,7 @@ export class HttpLoggingInterceptor implements NestInterceptor {
     const userAgent = req.headers['user-agent'];
     const startTime = Date.now();
     const origin = req.headers.origin || req.headers.referer || '';
-    let source = LogSource.SYSTEM;
+    let source: LogSource = LogSource.SYSTEM;
     if (origin.includes('3001') || origin.includes('admin')) {
       source = LogSource.ADMIN;
     } else if (origin.includes('3002') || origin.includes('form') || origin.includes('app')) {
