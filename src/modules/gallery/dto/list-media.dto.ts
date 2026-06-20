@@ -1,13 +1,13 @@
-import { IsBooleanString, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsBooleanString, IsDateString, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 import { MediaType } from '@prisma/client';
 
 export class ListMediaDto {
   @IsOptional()
-  @IsString()
+  @IsUUID()
   albumId?: string;
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
   bodyId?: string;
 
   @IsOptional()
@@ -27,10 +27,10 @@ export class ListMediaDto {
   isDeleted?: string;
 
   @IsOptional()
-  @IsString()
+  @IsDateString()
   startDate?: string;
 
   @IsOptional()
-  @IsString()
+  @IsDateString()
   endDate?: string;
 }

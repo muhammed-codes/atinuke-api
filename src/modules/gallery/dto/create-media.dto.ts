@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsBoolean, IsArray, IsNumber, IsUrl } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsBoolean, IsArray, IsNumber, IsUrl, IsUUID, IsDateString, MaxLength } from 'class-validator';
 import { MediaType } from '@prisma/client';
 
 export class CreateMediaDto {
@@ -11,14 +11,16 @@ export class CreateMediaDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(500)
   title?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(1000)
   caption?: string;
 
   @IsOptional()
-  @IsString()
+  @IsDateString()
   dateTaken?: string;
 
   @IsOptional()
@@ -30,17 +32,18 @@ export class CreateMediaDto {
   isAdminOnly?: boolean;
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
   albumId?: string;
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
+  @IsUUID('4', { each: true })
   bodyIds?: string[];
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
+  @MaxLength(50, { each: true })
   tags?: string[];
   
   @IsOptional()
@@ -49,5 +52,6 @@ export class CreateMediaDto {
   
   @IsOptional()
   @IsString()
+  @MaxLength(64)
   hash?: string;
 }

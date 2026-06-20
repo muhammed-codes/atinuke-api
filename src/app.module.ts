@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { validateEnv } from './config/env.validation';
 import { LoggerModule } from './core/logger/logger.module';
 import { PrismaModule } from './core/prisma/prisma.module';
@@ -40,6 +41,9 @@ import { GalleryModule } from './modules/gallery/gallery.module';
     AuthApiModule,
     GalleryModule,
   ],
-  providers: [RebuildTreeCacheCommand],
+  providers: [
+    RebuildTreeCacheCommand,
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

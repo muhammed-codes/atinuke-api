@@ -8,15 +8,18 @@ import {
   IsEnum,
   IsNotEmpty,
   IsOptional,
+  IsPhoneNumber,
   IsString,
   IsUrl,
   IsUUID,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateBodyDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(200)
   fullname: string;
 
   @ApiProperty({ enum: Sex })
@@ -32,21 +35,24 @@ export class CreateBodyDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(200)
   placeOfBirth: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @MaxLength(100)
   nickname?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
+  @IsPhoneNumber()
   phoneNumber?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @MaxLength(200)
   occupation?: string;
 
   @ApiPropertyOptional()
@@ -83,5 +89,6 @@ export class CreateBodyDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @MaxLength(2000)
   notes?: string;
 }
