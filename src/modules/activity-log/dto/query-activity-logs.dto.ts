@@ -1,4 +1,4 @@
-import { LogCategory, LogLevel } from '@prisma/client';
+import { LogCategory, LogLevel, LogSource } from '@prisma/client';
 import { IsEnum, IsOptional, IsString, IsDateString, IsInt, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -23,6 +23,10 @@ export class QueryActivityLogsDto {
   @IsOptional()
   @IsEnum(LogLevel)
   level?: LogLevel;
+
+  @IsOptional()
+  @IsEnum(LogSource)
+  source?: LogSource;
 
   @IsOptional()
   @IsString()

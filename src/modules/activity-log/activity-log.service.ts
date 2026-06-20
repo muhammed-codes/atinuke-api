@@ -9,21 +9,35 @@ export class ActivityLogService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateActivityLogDto) {
+    let userDisplay = dto.userDisplay;
+
+    if (dto.userId && !userDisplay) {
+      const profile = await this.prisma.profile.findUnique({
+        where: { id: dto.userId },
+        select: { displayName: true },
+      });
+      if (profile) {
+        userDisplay = profile.displayName;
+      }
+    }
+
     return this.prisma.activityLog.create({ 
       data: {
         ...dto,
+        userDisplay,
         metadata: dto.metadata as Prisma.InputJsonValue | undefined
       } 
     });
   }
 
   async query(filters: QueryActivityLogsDto) {
-    const { skip = 0, take = 50, category, level, userId, search, from, to } = filters;
+    const { skip = 0, take = 50, category, level, source, userId, search, from, to } = filters;
 
     const where: Prisma.ActivityLogWhereInput = {};
 
     if (category) where.category = category;
     if (level) where.level = level;
+    if (source) where.source = source;
     if (userId) where.userId = userId;
 
     if (from || to) {

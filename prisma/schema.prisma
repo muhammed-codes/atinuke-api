@@ -43,6 +43,12 @@ enum LogLevel {
   SECURITY
 }
 
+enum LogSource {
+  ADMIN
+  APP
+  SYSTEM
+}
+
 enum LogCategory {
   AUTH
   ADMIN
@@ -194,6 +200,7 @@ model ActivityLog {
   userId      String?
   userDisplay String?
   action      String
+  source      LogSource   @default(SYSTEM)
   category    LogCategory
   level       LogLevel    @default(INFO)
   method      String?

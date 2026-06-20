@@ -1,6 +1,5 @@
-import { LogCategory, LogLevel } from '@prisma/client';
-import { IsEnum, IsOptional, IsString, IsDateString, IsInt, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { LogCategory, LogLevel, LogSource } from '@prisma/client';
+import { IsEnum, IsOptional, IsString, IsInt } from 'class-validator';
 
 export class CreateActivityLogDto {
   @IsOptional()
@@ -20,6 +19,10 @@ export class CreateActivityLogDto {
   @IsOptional()
   @IsEnum(LogLevel)
   level?: LogLevel;
+
+  @IsOptional()
+  @IsEnum(LogSource)
+  source?: LogSource;
 
   @IsOptional()
   @IsString()

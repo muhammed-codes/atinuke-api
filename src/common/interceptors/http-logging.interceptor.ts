@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Observable, tap, catchError, throwError } from 'rxjs';
-import { LogCategory, LogLevel } from '@prisma/client';
+import { LogCategory, LogLevel, LogSource } from '@prisma/client';
 import { LoggerService } from '../../core/logger/logger.service';
 import { AuthenticatedUser } from '../types/authenticated-user.type';
 import { ActivityLogService } from '../../modules/activity-log/activity-log.service';
@@ -77,6 +77,13 @@ export class HttpLoggingInterceptor implements NestInterceptor {
     const userDisplay = (req.user as any)?.displayName ?? undefined;
     const userAgent = req.headers['user-agent'];
     const startTime = Date.now();
+    const origin = req.headers.origin || req.headers.referer || '';
+    let source = LogSource.SYSTEM;
+    if (origin.includes('3001') || origin.includes('admin')) {
+      source = LogSource.ADMIN;
+    } else if (origin.includes('3002') || origin.includes('form') || origin.includes('app')) {
+      source = LogSource.APP;
+    }
 
     return next.handle().pipe(
       tap(() => {
@@ -99,6 +106,7 @@ export class HttpLoggingInterceptor implements NestInterceptor {
           userDisplay,
           action: meta.action,
           category: meta.category,
+          source,
           level: LogLevel.INFO,
           method,
           path,
@@ -123,6 +131,7 @@ export class HttpLoggingInterceptor implements NestInterceptor {
             userDisplay,
             action: 'AUTH_FAILURE',
             category: LogCategory.AUTH,
+            source,
             level: LogLevel.SECURITY,
             method,
             path,
@@ -140,6 +149,7 @@ export class HttpLoggingInterceptor implements NestInterceptor {
             userDisplay,
             action: 'SERVER_ERROR',
             category: LogCategory.SYSTEM,
+            source,
             level: LogLevel.ERROR,
             method,
             path,
