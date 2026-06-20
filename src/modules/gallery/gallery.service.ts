@@ -54,14 +54,20 @@ export class GalleryService {
     });
   }
 
-  updateAlbum(id: string, dto: UpdateAlbumDto) {
+  async updateAlbum(id: string, dto: UpdateAlbumDto) {
+    const album = await this.prisma.galleryAlbum.findUnique({ where: { id } });
+    if (!album) throw new NotFoundException('Album not found');
+
     return this.prisma.galleryAlbum.update({
       where: { id },
       data: dto,
     });
   }
 
-  deleteAlbum(id: string) {
+  async deleteAlbum(id: string) {
+    const album = await this.prisma.galleryAlbum.findUnique({ where: { id } });
+    if (!album) throw new NotFoundException('Album not found');
+
     return this.prisma.galleryAlbum.delete({
       where: { id },
     });
