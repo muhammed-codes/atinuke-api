@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { validateEnv } from './config/env.validation';
 import { LoggerModule } from './core/logger/logger.module';
 import { PrismaModule } from './core/prisma/prisma.module';
@@ -20,6 +21,13 @@ import { GalleryModule } from './modules/gallery/gallery.module';
       isGlobal: true,
       validate: validateEnv,
     }),
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60000,
+        limit: 60,
+      },
+    ]),
     LoggerModule,
     PrismaModule,
     RedisModule,

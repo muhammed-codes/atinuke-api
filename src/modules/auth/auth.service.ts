@@ -15,15 +15,14 @@ import { PrismaService } from "../../core/prisma/prisma.service";
 
 @Injectable()
 export class AuthService {
-  private supabase: SupabaseClient;
+  private readonly supabase: SupabaseClient;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
   ) {
-    const supabaseUrl = this.configService.get<string>("SUPABASE_URL") || "";
-    const supabaseKey =
-      this.configService.get<string>("SUPABASE_ANON_KEY") || "";
+    const supabaseUrl = this.configService.get<string>('SUPABASE_URL')!;
+    const supabaseKey = this.configService.get<string>('SUPABASE_ANON_KEY')!;
     this.supabase = createClient(supabaseUrl, supabaseKey);
   }
 
@@ -87,17 +86,19 @@ export class AuthService {
     return { message: "Password reset email sent successfully" };
   }
 
-  async changePassword(token: string, changePasswordDto: ChangePasswordDto) {
-    const supabaseUrl = this.configService.get<string>("SUPABASE_URL") || "";
-    const supabaseKey =
-      this.configService.get<string>("SUPABASE_ANON_KEY") || "";
+  async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
+    const supabaseUrl = this.configService.get<string>('SUPABASE_URL')!;
+    const serviceRoleKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY');
 
-    // Create a client initialized with the user's access token to update their password
-    const userClient = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
+    if (!serviceRoleKey) {
+      throw new BadRequestException('Server misconfiguration: service role key not set');
+    }
+
+    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    const { data, error } = await userClient.auth.updateUser({
+    const { error } = await adminClient.auth.admin.updateUserById(userId, {
       password: changePasswordDto.password,
     });
 
@@ -105,6 +106,6 @@ export class AuthService {
       throw new BadRequestException(error.message);
     }
 
-    return { message: "Password changed successfully" };
+    return { message: 'Password changed successfully' };
   }
 }

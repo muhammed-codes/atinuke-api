@@ -38,8 +38,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         message = `Database Error: ${exception.message}`;
       }
     } else if (exception instanceof Error) {
-      // Temporarily expose the actual error message for debugging
-      message = exception.message;
+      message =
+        process.env.NODE_ENV !== 'production'
+          ? exception.message
+          : 'An unexpected error occurred';
     }
 
     if (statusCode >= 500) {
