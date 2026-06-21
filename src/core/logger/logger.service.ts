@@ -8,10 +8,12 @@ export class LoggerService implements NestLoggerService {
 
   constructor(private readonly configService: ConfigService) {
     const isDev = this.configService.get<string>('NODE_ENV') === 'development';
+    const enableLogging = this.configService.get<string>('ENABLE_LOGGING') !== 'false';
 
     this.logger = pino(
       {
         level: 'debug',
+        enabled: enableLogging,
         timestamp: pino.stdTimeFunctions.isoTime,
       },
       isDev
