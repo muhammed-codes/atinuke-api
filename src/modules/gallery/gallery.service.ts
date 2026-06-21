@@ -144,14 +144,26 @@ export class GalleryService {
       ];
     }
 
-    return this.prisma.galleryMedia.findMany({
-      where,
-      include: galleryMediaInclude,
-      orderBy: [
-        { dateTaken: 'desc' },
-        { createdAt: 'desc' }
-      ],
-    });
+    const skip = query.skip ? Number(query.skip) : 0;
+    const take = query.take ? Number(query.take) : 50;
+
+    return Promise.all([
+      this.prisma.galleryMedia.count({ where }),
+      this.prisma.galleryMedia.findMany({
+        where,
+        include: galleryMediaInclude,
+        orderBy: [
+          { isPinned: 'desc' },
+          { dateTaken: 'desc' },
+          { createdAt: 'desc' }
+        ],
+        skip,
+        take,
+      }),
+    ]).then(([totalRecords, data]) => ({
+      totalRecords,
+      data,
+    }));
   }
 
   getMedia(id: string) {

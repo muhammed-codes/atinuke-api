@@ -37,4 +37,10 @@ export class ListMediaDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  skip?: string | number;
+
+  @IsOptional()
+  take?: string | number;
 }
