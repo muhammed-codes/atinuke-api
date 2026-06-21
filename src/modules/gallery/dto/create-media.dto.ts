@@ -2,8 +2,9 @@ import { IsString, IsOptional, IsEnum, IsBoolean, IsArray, IsNumber, IsUrl, IsUU
 import { MediaType } from '@prisma/client';
 
 export class CreateMediaDto {
-  @IsUrl()
-  url: string;
+  @IsArray()
+  @IsUrl({}, { each: true })
+  urls: string[];
 
   @IsOptional()
   @IsEnum(MediaType)

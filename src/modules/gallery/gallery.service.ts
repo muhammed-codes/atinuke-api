@@ -73,40 +73,45 @@ export class GalleryService {
     });
   }
 
-  createMedia(userId: string, dto: CreateMediaDto) {
-    const { tags, bodyIds, dateTaken, ...rest } = dto;
-    const createMedia = () => this.prisma.galleryMedia.create({
-      data: {
-        ...rest,
-        dateTaken: dateTaken ? new Date(dateTaken) : undefined,
-        createdBy: userId,
-        tags: tags ? {
-          connectOrCreate: tags.map((tag) => ({
-            where: { name: tag },
-            create: { name: tag },
-          })),
-        } : undefined,
-        bodies: bodyIds ? {
-          connect: bodyIds.map((id) => ({ id })),
-        } : undefined,
-      },
-      include: galleryMediaInclude,
-    });
+  async createMedia(userId: string, dto: CreateMediaDto) {
+    const { tags, bodyIds, dateTaken, urls, ...rest } = dto;
+    
+    const createdItems = await Promise.all(
+      urls.map(async (url) => {
+        const createMedia = () => this.prisma.galleryMedia.create({
+          data: {
+            ...rest,
+            url,
+            dateTaken: dateTaken ? new Date(dateTaken) : undefined,
+            createdBy: userId,
+            tags: tags ? {
+              connectOrCreate: tags.map((tag) => ({
+                where: { name: tag },
+                create: { name: tag },
+              })),
+            } : undefined,
+            bodies: bodyIds ? {
+              connect: bodyIds.map((id) => ({ id })),
+            } : undefined,
+          },
+          include: galleryMediaInclude,
+        });
 
-    if (rest.hash) {
-      return this.prisma.galleryMedia.findFirst({
-        where: { hash: rest.hash },
-        include: galleryMediaInclude,
-      }).then((existing) => {
-        if (existing) {
-          return existing;
+        if (rest.hash) {
+          const existing = await this.prisma.galleryMedia.findFirst({
+            where: { hash: rest.hash },
+            include: galleryMediaInclude,
+          });
+          if (existing) {
+            return existing;
+          }
         }
 
         return createMedia();
-      });
-    }
+      })
+    );
 
-    return createMedia();
+    return createdItems;
   }
 
   listMedia(query: ListMediaDto) {
@@ -180,7 +185,7 @@ export class GalleryService {
   }
 
   updateMedia(id: string, dto: UpdateMediaDto) {
-    const { tags, bodyIds, dateTaken, ...rest } = dto;
+    const { tags, bodyIds, dateTaken, urls, ...rest } = dto;
 
     return this.prisma.galleryMedia.update({
       where: { id },

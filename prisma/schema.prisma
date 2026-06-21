@@ -143,6 +143,7 @@ model Profile {
 enum MediaType {
   PHOTO
   DOCUMENT
+  VIDEO
 }
 
 model GalleryAlbum {
