@@ -33,4 +33,8 @@ export class ListMediaDto {
   @IsOptional()
   @IsDateString()
   endDate?: string;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 }

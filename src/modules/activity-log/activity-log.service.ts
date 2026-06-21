@@ -1,12 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { LogCategory, LogLevel, Prisma } from '@prisma/client';
 import { PrismaService } from '../../core/prisma/prisma.service';
 import { CreateActivityLogDto } from './dto/create-activity-log.dto';
 import { QueryActivityLogsDto } from './dto/query-activity-logs.dto';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class ActivityLogService {
+  private readonly logger = new Logger(ActivityLogService.name);
+
   constructor(private readonly prisma: PrismaService) {}
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async handleAutoClearLogs() {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    try {
+      const result = await this.prisma.activityLog.deleteMany({
+        where: {
+          createdAt: {
+            lt: sevenDaysAgo,
+          },
+        },
+      });
+      this.logger.log(`Auto-cleared ${result.count} old activity logs (older than 7 days)`);
+    } catch (error) {
+      this.logger.error('Failed to auto-clear activity logs', error);
+    }
+  }
 
   async create(dto: CreateActivityLogDto) {
     let userDisplay = dto.userDisplay;

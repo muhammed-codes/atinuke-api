@@ -134,6 +134,16 @@ export class GalleryService {
       }
     }
 
+    if (query.search) {
+      where.OR = [
+        { title: { contains: query.search, mode: 'insensitive' } },
+        { caption: { contains: query.search, mode: 'insensitive' } },
+        { album: { name: { contains: query.search, mode: 'insensitive' } } },
+        { tags: { some: { name: { contains: query.search, mode: 'insensitive' } } } },
+        { bodies: { some: { fullname: { contains: query.search, mode: 'insensitive' } } } },
+      ];
+    }
+
     return this.prisma.galleryMedia.findMany({
       where,
       include: galleryMediaInclude,
