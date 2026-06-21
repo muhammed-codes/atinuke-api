@@ -159,8 +159,8 @@ export class GalleryService {
         include: galleryMediaInclude,
         orderBy: [
           { isPinned: 'desc' },
-          { dateTaken: 'desc' },
-          { createdAt: 'desc' }
+          { createdAt: 'desc' },
+          { dateTaken: 'desc' }
         ],
         skip,
         take,
