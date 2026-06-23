@@ -23,8 +23,8 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
   ) {
-    const supabaseUrl = this.configService.get<string>('SUPABASE_URL')!;
-    const supabaseKey = this.configService.get<string>('SUPABASE_ANON_KEY')!;
+    const supabaseUrl = this.configService.get<string>("SUPABASE_URL")!;
+    const supabaseKey = this.configService.get<string>("SUPABASE_ANON_KEY")!;
     this.supabase = createClient(supabaseUrl, supabaseKey);
   }
 
@@ -35,7 +35,11 @@ export class AuthService {
     });
 
     if (error) {
-      this.logger.security('SIGNUP_FAILED', { email: signUpDto.email, reason: error.message }, 'AuthService');
+      this.logger.security(
+        "SIGNUP_FAILED",
+        { email: signUpDto.email, reason: error.message },
+        "AuthService",
+      );
       throw new BadRequestException(error.message);
     }
 
@@ -54,7 +58,10 @@ export class AuthService {
         },
       });
 
-      this.logger.log(`SIGNUP_SUCCESS: ${signUpDto.email} (role: ${isFirstUser ? 'ADMIN' : 'MEMBER'})`, 'AuthService');
+      this.logger.log(
+        `SIGNUP_SUCCESS: ${signUpDto.email} (role: ${isFirstUser ? "ADMIN" : "MEMBER"})`,
+        "AuthService",
+      );
     }
 
     return data;
@@ -67,11 +74,18 @@ export class AuthService {
     });
 
     if (error) {
-      this.logger.security('LOGIN_FAILED', { email: authCredentialsDto.email, reason: error.message }, 'AuthService');
+      this.logger.security(
+        "LOGIN_FAILED",
+        { email: authCredentialsDto.email, reason: error.message },
+        "AuthService",
+      );
       throw new UnauthorizedException(error.message);
     }
 
-    this.logger.log(`LOGIN_SUCCESS: ${authCredentialsDto.email}`, 'AuthService');
+    this.logger.log(
+      `LOGIN_SUCCESS: ${authCredentialsDto.email}`,
+      "AuthService",
+    );
     return data;
   }
 
@@ -85,20 +99,31 @@ export class AuthService {
     );
 
     if (error) {
-      this.logger.security('PASSWORD_RESET_FAILED', { email: forgotPasswordDto.email, reason: error.message }, 'AuthService');
+      this.logger.security(
+        "PASSWORD_RESET_FAILED",
+        { email: forgotPasswordDto.email, reason: error.message },
+        "AuthService",
+      );
       throw new BadRequestException(error.message);
     }
 
-    this.logger.log(`PASSWORD_RESET_REQUESTED: ${forgotPasswordDto.email}`, 'AuthService');
+    this.logger.log(
+      `PASSWORD_RESET_REQUESTED: ${forgotPasswordDto.email}`,
+      "AuthService",
+    );
     return { message: "Password reset email sent successfully" };
   }
 
   async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
-    const supabaseUrl = this.configService.get<string>('SUPABASE_URL')!;
-    const serviceRoleKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseUrl = this.configService.get<string>("SUPABASE_URL")!;
+    const serviceRoleKey = this.configService.get<string>(
+      "SUPABASE_SERVICE_ROLE_KEY",
+    );
 
     if (!serviceRoleKey) {
-      throw new BadRequestException('Server misconfiguration: service role key not set');
+      throw new BadRequestException(
+        "Server misconfiguration: service role key not set",
+      );
     }
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey, {
@@ -110,11 +135,16 @@ export class AuthService {
     });
 
     if (error) {
-      this.logger.security('PASSWORD_CHANGE_FAILED', { userId, reason: error.message }, 'AuthService');
+      this.logger.security(
+        "PASSWORD_CHANGE_FAILED",
+        { userId, reason: error.message },
+        "AuthService",
+      );
       throw new BadRequestException(error.message);
     }
 
-    this.logger.log(`PASSWORD_CHANGE_SUCCESS: userId=${userId}`, 'AuthService');
-    return { message: 'Password changed successfully' };
+    this.logger.log(`PASSWORD_CHANGE_SUCCESS: userId=${userId}`, "AuthService");
+    return { message: "Password changed successfully" };
   }
+
 }

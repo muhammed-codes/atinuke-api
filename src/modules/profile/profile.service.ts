@@ -11,19 +11,36 @@ export class ProfileService {
     private readonly redis: RedisService,
   ) {}
 
-  async getMe(userId: string): Promise<Profile> {
-    const cached = await this.redis.get<Profile>(CACHE_KEYS.USER_PROFILE(userId));
+  async getMe(userId: string) {
+    const cached = await this.redis.get<any>(CACHE_KEYS.USER_PROFILE(userId));
     if (cached) return cached;
 
     const profile = await this.prisma.profile.findUnique({
       where: { id: userId },
+      include: {
+        body: {
+          include: {
+            photos: {
+              orderBy: { position: 'asc' },
+              take: 1,
+            },
+          },
+        },
+      },
     });
 
     if (!profile) throw new NotFoundException('Profile not found');
 
-    await this.redis.set(CACHE_KEYS.USER_PROFILE(userId), profile, 300);
+    const result = {
+      ...profile,
+      displayName: profile.displayName || profile.body?.fullname || '',
+      profilePhoto: profile.profilePhoto || profile.body?.photos?.[0]?.url || null,
+      bio: profile.bio || profile.body?.notes || null,
+    };
 
-    return profile;
+    await this.redis.set(CACHE_KEYS.USER_PROFILE(userId), result, 300);
+
+    return result;
   }
 
   async updateMe(userId: string, dto: UpdateProfileDto): Promise<Profile> {

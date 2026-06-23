@@ -63,7 +63,7 @@ export class SupabaseJwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(payload: JwtPayload): Promise<AuthenticatedUser> {
     const userId = payload.sub;
 
-    const cached = await this.redisService.get<AuthenticatedUser>(CACHE_KEYS.USER_PROFILE(userId));
+    const cached = await this.redisService.get<AuthenticatedUser>(CACHE_KEYS.USER_SESSION(userId));
     if (cached) {
       return cached;
     }
@@ -87,7 +87,7 @@ export class SupabaseJwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       bodyId: profile.bodyId,
     };
 
-    await this.redisService.set(CACHE_KEYS.USER_PROFILE(userId), user, 300);
+    await this.redisService.set(CACHE_KEYS.USER_SESSION(userId), user, 300);
 
     return user;
   }

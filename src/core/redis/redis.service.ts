@@ -6,6 +6,7 @@ import { LoggerService } from '../logger/logger.service';
 export const CACHE_KEYS = {
   FAMILY_TREE: 'family_tree',
   USER_PROFILE: (userId: string) => `profile:${userId}`,
+  USER_SESSION: (userId: string) => `session:${userId}`,
 } as const;
 
 @Injectable()
