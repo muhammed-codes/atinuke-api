@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
   ParseUUIDPipe,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiBody } from '@nestjs/swagger';
 import { ChronicleService } from './chronicle.service';
@@ -22,7 +23,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../core/auth/decorators/roles.decorator';
 import { CurrentUser } from '../../core/auth/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/types/authenticated-user.type';
-import { UserRole } from '@prisma/client';
+import { UserRole, ChronicleStatus } from '@prisma/client';
 
 @ApiTags('Chronicle')
 @ApiBearerAuth()
@@ -56,7 +57,13 @@ export class ChronicleController {
   @Get()
   @ApiOperation({ summary: 'Paginated list of published chronicles' })
   @ApiResponse({ status: 200, description: 'List of chronicles' })
-  async findAll(@Query() dto: ChroniclePageDto) {
+  async findAll(
+    @Query() dto: ChroniclePageDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    if (user.role !== UserRole.ADMIN && dto.status && dto.status !== ChronicleStatus.PUBLISHED) {
+      throw new ForbiddenException('Members can only query published chronicles');
+    }
     return this.chronicleService.findAll(dto);
   }
 

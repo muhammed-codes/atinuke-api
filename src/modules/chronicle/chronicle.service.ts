@@ -269,12 +269,15 @@ export class ChronicleService {
       }
     }
 
-    const authorIds = [...new Set(chronicle.comments.map((c) => c.authorId))];
-    const profiles = await this.prisma.profile.findMany({
-      where: { id: { in: authorIds } },
-      select: { id: true, displayName: true, profilePhoto: true },
-    });
-    const profileMap = new Map(profiles.map((p) => [p.id, p]));
+    const profileMap = new Map<string, { id: string; displayName: string; profilePhoto: string | null }>();
+    if (chronicle.comments.length > 0) {
+      const authorIds = [...new Set(chronicle.comments.map((c) => c.authorId))];
+      const profiles = await this.prisma.profile.findMany({
+        where: { id: { in: authorIds } },
+        select: { id: true, displayName: true, profilePhoto: true },
+      });
+      for (const p of profiles) profileMap.set(p.id, p);
+    }
 
     const commentsWithAuthors = chronicle.comments.map((c) => {
       const p = profileMap.get(c.authorId);
@@ -317,7 +320,15 @@ export class ChronicleService {
     }
 
     if (dto.keyword) {
-      where.title = { contains: dto.keyword, mode: 'insensitive' }; // Uses tsvector index manually later or contains fallback
+      const matches = await this.prisma.$queryRaw<{id: string}[]>`
+        SELECT id FROM chronicles 
+        WHERE to_tsvector('english', title) @@ plainto_tsquery('english', ${dto.keyword})
+      `;
+      const matchIds = matches.map((m) => m.id);
+      if (matchIds.length === 0) {
+        return paginate([], 0);
+      }
+      where.id = { in: matchIds };
     }
     if (dto.category) where.category = dto.category;
     if (dto.pinnedOnly) where.isPinned = true;
@@ -348,6 +359,10 @@ export class ChronicleService {
       }),
       this.prisma.chronicle.count({ where }),
     ]);
+
+    if (chronicles.length === 0) {
+      return paginate([], total);
+    }
 
     const authorIds = [...new Set(chronicles.map((c) => c.submittedBy))];
     const profiles = await this.prisma.profile.findMany({
@@ -393,6 +408,10 @@ export class ChronicleService {
       }),
       this.prisma.chronicle.count({ where: { status: ChronicleStatus.PENDING } }),
     ]);
+
+    if (items.length === 0) {
+      return paginate([], total);
+    }
 
     const authorIds = [...new Set(items.map((c) => c.submittedBy))];
     const profiles = await this.prisma.profile.findMany({
