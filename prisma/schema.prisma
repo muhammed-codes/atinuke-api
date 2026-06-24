@@ -93,6 +93,9 @@ model Body {
 
   profile Profile?
 
+  attributedChronicles    Chronicle[]            @relation("ChronicleAttributedBody")
+  taggedInChronicles      ChronicleTaggedBody[]
+
   @@map("bodies")
 }
 
@@ -218,4 +221,119 @@ model ActivityLog {
   @@index([level])
   @@index([createdAt])
   @@map("activity_logs")
+}
+
+enum ChronicleStatus {
+  PENDING
+  PUBLISHED
+  DECLINED
+}
+
+enum ChronicleCategory {
+  MIGRATION
+  MARRIAGE
+  ACHIEVEMENT
+  TRADITION
+  RECIPE
+  FUNNY_STORY
+  TRIBUTE
+  GENERAL
+}
+
+enum ChronicleMediaType {
+  IMAGE
+  AUDIO
+}
+
+model Chronicle {
+  id              String              @id @default(uuid())
+  title           String
+  content         String              @db.Text
+  category        ChronicleCategory   @default(GENERAL)
+  status          ChronicleStatus     @default(PENDING)
+
+  submittedBy     String
+  attributedToType ChronicleAttributionType @default(SELF)
+  attributedToBodyId String?
+  attributedToBody   Body?            @relation("ChronicleAttributedBody", fields: [attributedToBodyId], references: [id], onDelete: SetNull)
+  attributedToLabel  String?
+
+  isEdit          Boolean             @default(false)
+  publishedVersionId String?          @unique
+  publishedVersion    Chronicle?      @relation("ChronicleRevision", fields: [publishedVersionId], references: [id], onDelete: Cascade)
+  pendingEdit         Chronicle?      @relation("ChronicleRevision")
+
+  declineReason   String?
+
+  isPinned        Boolean             @default(false)
+
+  youtubeLinks    String[]            @default([])
+
+  reviewedBy      String?
+  reviewedAt      DateTime?
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  media           ChronicleMedia[]
+  taggedBodies    ChronicleTaggedBody[]
+  comments        ChronicleComment[]
+  likes           ChronicleLike[]
+
+  @@map("chronicles")
+}
+
+enum ChronicleAttributionType {
+  SELF
+  MEMBER
+  ADMIN
+  CUSTOM
+}
+
+model ChronicleMedia {
+  id            String              @id @default(uuid())
+  chronicleId   String
+  chronicle     Chronicle           @relation(fields: [chronicleId], references: [id], onDelete: Cascade)
+  type          ChronicleMediaType
+  url           String
+  position      Int                 @default(0)
+  createdAt     DateTime            @default(now())
+
+  @@unique([chronicleId, position, type])
+  @@map("chronicle_media")
+}
+
+model ChronicleTaggedBody {
+  id            String     @id @default(uuid())
+  chronicleId   String
+  chronicle     Chronicle  @relation(fields: [chronicleId], references: [id], onDelete: Cascade)
+  bodyId        String
+  body          Body       @relation(fields: [bodyId], references: [id], onDelete: Cascade)
+  createdAt     DateTime   @default(now())
+
+  @@unique([chronicleId, bodyId])
+  @@map("chronicle_tagged_bodies")
+}
+
+model ChronicleComment {
+  id            String     @id @default(uuid())
+  chronicleId   String
+  chronicle     Chronicle  @relation(fields: [chronicleId], references: [id], onDelete: Cascade)
+  authorId      String
+  content       String     @db.Text
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@map("chronicle_comments")
+}
+
+model ChronicleLike {
+  id            String     @id @default(uuid())
+  chronicleId   String
+  chronicle     Chronicle  @relation(fields: [chronicleId], references: [id], onDelete: Cascade)
+  userId        String
+  createdAt     DateTime   @default(now())
+
+  @@unique([chronicleId, userId])
+  @@map("chronicle_likes")
 }

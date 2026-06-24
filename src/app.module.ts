@@ -18,6 +18,8 @@ import { AuthApiModule } from './modules/auth/auth.module';
 import { GalleryModule } from './modules/gallery/gallery.module';
 import { ActivityLogModule } from './modules/activity-log/activity-log.module';
 
+import { ChronicleModule } from './modules/chronicle/chronicle.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -44,6 +46,7 @@ import { ActivityLogModule } from './modules/activity-log/activity-log.module';
     AuthApiModule,
     GalleryModule,
     ActivityLogModule,
+    ChronicleModule,
   ],
   providers: [
     RebuildTreeCacheCommand,
