@@ -46,6 +46,7 @@ export class CreateBodyDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsPhoneNumber()
   phoneNumber?: string;
 

@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsPhoneNumber, IsString, IsUrl, MaxLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class UpdateProfileDto {
   @ApiPropertyOptional()
@@ -11,6 +12,7 @@ export class UpdateProfileDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsPhoneNumber()
   phoneNumber?: string;
 
