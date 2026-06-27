@@ -28,9 +28,9 @@ export class CreateBodyDto {
 
   @ApiPropertyOptional({ example: '1950-01-01' })
   @IsOptional()
-  @Transform(({ value }) => (value === '' ? undefined : value))
+  @Transform(({ value }) => (value === '' ? null : value))
   @IsDateString()
-  dateOfBirth?: string;
+  dateOfBirth?: string | null;
 
   @ApiProperty()
   @IsString()
@@ -46,9 +46,9 @@ export class CreateBodyDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @Transform(({ value }) => (value === '' ? undefined : value))
+  @Transform(({ value }) => (value === '' ? null : value))
   @IsPhoneNumber()
-  phoneNumber?: string;
+  phoneNumber?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -79,9 +79,9 @@ export class CreateBodyDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @Transform(({ value }) => (value === '' ? undefined : value))
+  @Transform(({ value }) => (value === '' ? null : value))
   @IsString()
-  deathDate?: string;
+  deathDate?: string | null;
 
   @ApiProperty({ enum: MaritalStatus })
   @IsEnum(MaritalStatus)
