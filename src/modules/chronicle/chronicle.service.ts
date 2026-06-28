@@ -434,16 +434,18 @@ export class ChronicleService {
     return paginate(enriched, total);
   }
 
-  async pinChronicle(id: string, pinned: boolean) {
+  async pinChronicle(id: string, pinned?: boolean) {
     const chronicle = await this.prisma.chronicle.findUnique({ where: { id } });
     if (!chronicle) throw new NotFoundException('Chronicle not found');
     if (chronicle.status !== ChronicleStatus.PUBLISHED) {
       throw new BadRequestException('Only published chronicles can be pinned');
     }
 
+    const nextState = pinned !== undefined ? pinned : !chronicle.isPinned;
+
     return this.prisma.chronicle.update({
       where: { id },
-      data: { isPinned: pinned },
+      data: { isPinned: nextState },
     });
   }
 
