@@ -258,6 +258,13 @@ export class ChronicleService {
         comments: { orderBy: { createdAt: 'asc' } },
         likes: { select: { userId: true } },
         pendingEdit: true,
+        publishedVersion: {
+          include: {
+            media: { orderBy: [{ type: 'asc' }, { position: 'asc' }] },
+            taggedBodies: { include: { body: { include: { photos: { take: 1, orderBy: { position: 'asc' } } } } } },
+            attributedToBody: { include: { photos: { take: 1, orderBy: { position: 'asc' } } } },
+          }
+        }
       },
     });
 
