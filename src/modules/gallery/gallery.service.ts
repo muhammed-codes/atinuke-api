@@ -171,26 +171,41 @@ export class GalleryService {
     }));
   }
 
-  getMedia(id: string) {
-    return this.prisma.galleryMedia.findUnique({
+  async getMedia(id: string) {
+    const media = await this.prisma.galleryMedia.findUnique({
       where: { id },
       include: galleryMediaInclude,
-    }).then((media) => {
-      if (!media) {
-        throw new NotFoundException('Media not found');
-      }
-
-      return media;
     });
+
+    if (!media) {
+      throw new NotFoundException('Media not found');
+    }
+
+    const creatorProfile = await this.prisma.profile.findUnique({
+      where: { id: media.createdBy },
+      select: { displayName: true },
+    });
+
+    const updaterProfile = media.updatedBy ? await this.prisma.profile.findUnique({
+      where: { id: media.updatedBy },
+      select: { displayName: true },
+    }) : null;
+
+    return {
+      ...media,
+      creator: creatorProfile ? { displayName: creatorProfile.displayName } : null,
+      updater: updaterProfile ? { displayName: updaterProfile.displayName } : null,
+    };
   }
 
-  updateMedia(id: string, dto: UpdateMediaDto) {
+  updateMedia(userId: string, id: string, dto: UpdateMediaDto) {
     const { tags, bodyIds, dateTaken, urls, ...rest } = dto;
 
     return this.prisma.galleryMedia.update({
       where: { id },
       data: {
         ...rest,
+        updatedBy: userId,
         ...(dateTaken && { dateTaken: new Date(dateTaken) }),
         ...(tags && {
           tags: {

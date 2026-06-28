@@ -155,6 +155,7 @@ export class ChronicleService {
           isEdit: true,
           publishedVersionId: chronicleId,
           submittedBy: original.submittedBy,
+          updatedBy: user.id,
           attributedToType: mergedDto.attributedToType!,
           attributedToBodyId: mergedDto.attributedToBodyId,
           attributedToLabel: mergedDto.attributedToLabel,
@@ -210,6 +211,7 @@ export class ChronicleService {
             attributedToType: chronicle.attributedToType,
             attributedToBodyId: chronicle.attributedToBodyId,
             attributedToLabel: chronicle.attributedToLabel,
+            updatedBy: chronicle.updatedBy,
             reviewedBy: reviewerId,
             reviewedAt: new Date(),
             media: {
@@ -300,6 +302,16 @@ export class ChronicleService {
         pendingEdit = chronicle.pendingEdit;
       }
     }
+
+    const authorProfile = await this.prisma.profile.findUnique({
+      where: { id: chronicle.submittedBy },
+      select: { displayName: true, profilePhoto: true },
+    });
+
+    const updaterProfile = chronicle.updatedBy ? await this.prisma.profile.findUnique({
+      where: { id: chronicle.updatedBy },
+      select: { displayName: true },
+    }) : null;
 
     return {
       ...chronicle,

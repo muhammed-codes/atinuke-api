@@ -63,8 +63,8 @@ export class GalleryController {
   }
 
   @Patch('media/:id')
-  updateMedia(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateMediaDto) {
-    return this.galleryService.updateMedia(id, dto);
+  updateMedia(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateMediaDto) {
+    return this.galleryService.updateMedia(user.id, id, dto);
   }
 
   @Delete('media/:id')

@@ -278,6 +278,7 @@ export class BodyService {
           deathDate: isAlive ? null : deathDate,
           maritalStatus: dto.maritalStatus,
           notes: dto.notes,
+          updatedBy: user.id,
         },
       });
 
@@ -355,12 +356,24 @@ export class BodyService {
       });
     }
 
+    const creatorProfile = await this.prisma.profile.findUnique({
+      where: { id: body.createdBy },
+      select: { displayName: true },
+    });
+
+    const updaterProfile = body.updatedBy ? await this.prisma.profile.findUnique({
+      where: { id: body.updatedBy },
+      select: { displayName: true },
+    }) : null;
+
     return {
       ...body,
       spouses: [...spousesFromA, ...spousesFromB],
       children,
       siblings,
-    } as BodyWithRelations;
+      creator: creatorProfile ? { displayName: creatorProfile.displayName } : null,
+      updater: updaterProfile ? { displayName: updaterProfile.displayName } : null,
+    } as any;
   }
 
   async findAll(dto: BodyPageDto): Promise<PaginatedResult<Body>> {
