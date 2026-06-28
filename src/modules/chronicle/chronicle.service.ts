@@ -342,6 +342,9 @@ export class ChronicleService {
     if (dto.taggedBodyId) {
       where.taggedBodies = { some: { bodyId: dto.taggedBodyId } };
     }
+    if (dto.attributedToBodyId) {
+      where.attributedToBodyId = dto.attributedToBodyId;
+    }
 
     let orderBy: any;
     if (dto.sortBy === 'oldest') {

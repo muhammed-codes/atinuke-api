@@ -21,6 +21,10 @@ export class ChroniclePageDto extends PaginationDto {
   taggedBodyId?: string;
 
   @IsOptional()
+  @IsUUID('4')
+  attributedToBodyId?: string;
+
+  @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()
   pinnedOnly?: boolean;
