@@ -20,13 +20,23 @@ export class ChronicleCommentService {
       throw new NotFoundException('Chronicle not found or not published');
     }
 
-    return this.prisma.chronicleComment.create({
+    const comment = await this.prisma.chronicleComment.create({
       data: {
         chronicleId,
         authorId,
         content: dto.content,
       },
     });
+
+    const profile = await this.prisma.profile.findUnique({
+      where: { id: authorId },
+      select: { displayName: true, profilePhoto: true },
+    });
+
+    return {
+      ...comment,
+      author: profile ? { displayName: profile.displayName, profilePhoto: profile.profilePhoto } : null,
+    };
   }
 
   async updateComment(commentId: string, dto: UpdateCommentDto, userId: string) {

@@ -8,13 +8,15 @@ export type ChronicleSummary = {
   status: ChronicleStatus;
   isPinned: boolean;
   createdAt: Date;
-  likeCount: number;
-  commentCount: number;
-  authorDisplayInfo: {
-    name: string;
-    photoUrl: string | null;
-  };
-  coverMedia: ChronicleMedia | null;
+  updatedAt: Date;
+  attributedToType: ChronicleAttributionType;
+  attributedToLabel: string | null;
+  attributedToBodyId: string | null;
+  attributedToBody: { id: string; fullname: string } | null;
+  author: { displayName: string; profilePhoto: string | null } | null;
+  media: { type: string; url: string }[];
+  likes: { count: number; userHasLiked: boolean };
+  _count: { comments: number };
 };
 
 export type ChronicleResponse = Chronicle & {

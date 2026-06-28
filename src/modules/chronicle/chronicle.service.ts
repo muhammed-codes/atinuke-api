@@ -354,6 +354,7 @@ export class ChronicleService {
         take,
         include: {
           media: { take: 1, orderBy: { position: 'asc' } },
+          attributedToBody: { select: { id: true, fullname: true } },
           _count: { select: { likes: true, comments: true } },
         },
       }),
@@ -371,23 +372,28 @@ export class ChronicleService {
     });
     const profileMap = new Map(profiles.map((p) => [p.id, p]));
 
-    const items: ChronicleSummary[] = chronicles.map((c) => {
+    const stripHtml = (html: string): string =>
+      html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
+    const items = chronicles.map((c) => {
       const p = profileMap.get(c.submittedBy);
       return {
         id: c.id,
         title: c.title,
-        excerpt: c.content.substring(0, 150),
+        excerpt: stripHtml(c.content).substring(0, 150),
         category: c.category,
         status: c.status,
         isPinned: c.isPinned,
         createdAt: c.createdAt,
-        likeCount: c._count.likes,
-        commentCount: c._count.comments,
-        authorDisplayInfo: {
-          name: p?.displayName || 'Unknown',
-          photoUrl: p?.profilePhoto || null,
-        },
-        coverMedia: c.media.length > 0 ? c.media[0] : null,
+        updatedAt: c.updatedAt,
+        attributedToType: c.attributedToType,
+        attributedToLabel: c.attributedToLabel,
+        attributedToBodyId: c.attributedToBodyId,
+        attributedToBody: c.attributedToBody,
+        author: p ? { displayName: p.displayName, profilePhoto: p.profilePhoto } : null,
+        media: c.media.map((m) => ({ type: m.type, url: m.url })),
+        likes: { count: c._count.likes, userHasLiked: false },
+        _count: { comments: c._count.comments },
       };
     });
 
