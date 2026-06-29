@@ -57,6 +57,7 @@ enum LogCategory {
   PROFILE
   NAVIGATION
   SYSTEM
+  CHRONICLE
 }
 
 model Body {
