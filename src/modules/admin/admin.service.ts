@@ -270,4 +270,67 @@ export class AdminService {
 
     return { successful, failed };
   }
+
+  async activateUser(id: string): Promise<Profile> {
+    const profile = await this.prisma.profile.findUnique({ where: { id } });
+    if (!profile) throw new NotFoundException('User not found');
+
+    const updated = await this.prisma.profile.update({
+      where: { id },
+      data: { status: UserStatus.APPROVED },
+    });
+
+    await this.redis.del(CACHE_KEYS.USER_PROFILE(id));
+
+    return updated;
+  }
+
+  async bulkActivateUser(ids: string[]): Promise<{ successful: string[]; failed: { id: string; reason: string }[] }> {
+    const successful: string[] = [];
+    const failed: { id: string; reason: string }[] = [];
+
+    await Promise.allSettled(
+      ids.map(async (id) => {
+        try {
+          await this.activateUser(id);
+          successful.push(id);
+        } catch (error: any) {
+          failed.push({ id, reason: error.message || 'Failed to activate user' });
+        }
+      }),
+    );
+
+    return { successful, failed };
+  }
+
+  async deleteUser(id: string): Promise<Profile> {
+    const profile = await this.prisma.profile.findUnique({ where: { id } });
+    if (!profile) throw new NotFoundException('User not found');
+
+    const deleted = await this.prisma.profile.delete({
+      where: { id },
+    });
+
+    await this.redis.del(CACHE_KEYS.USER_PROFILE(id));
+
+    return deleted;
+  }
+
+  async bulkDeleteUser(ids: string[]): Promise<{ successful: string[]; failed: { id: string; reason: string }[] }> {
+    const successful: string[] = [];
+    const failed: { id: string; reason: string }[] = [];
+
+    await Promise.allSettled(
+      ids.map(async (id) => {
+        try {
+          await this.deleteUser(id);
+          successful.push(id);
+        } catch (error: any) {
+          failed.push({ id, reason: error.message || 'Failed to delete user' });
+        }
+      }),
+    );
+
+    return { successful, failed };
+  }
 }

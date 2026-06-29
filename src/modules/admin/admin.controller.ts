@@ -140,4 +140,36 @@ export class AdminController {
   async bulkDeactivateUser(@Body() dto: BulkActionDto) {
     return this.adminService.bulkDeactivateUser(dto.ids);
   }
+
+  @Put('users/:id/activate')
+  @ApiOperation({ summary: 'Activate a deactivated user account (Admin only)' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: 200, description: 'User activated' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async activateUser(@Param('id', ParseUUIDPipe) id: string) {
+    return this.adminService.activateUser(id);
+  }
+
+  @Post('users/bulk/activate')
+  @ApiOperation({ summary: 'Bulk activate user accounts (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Bulk activate processed' })
+  async bulkActivateUser(@Body() dto: BulkActionDto) {
+    return this.adminService.bulkActivateUser(dto.ids);
+  }
+
+  @Delete('users/:id')
+  @ApiOperation({ summary: 'Delete a user account (Admin only)' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: 200, description: 'User deleted' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async deleteUser(@Param('id', ParseUUIDPipe) id: string) {
+    return this.adminService.deleteUser(id);
+  }
+
+  @Post('users/bulk/delete')
+  @ApiOperation({ summary: 'Bulk delete user accounts (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Bulk delete processed' })
+  async bulkDeleteUser(@Body() dto: BulkActionDto) {
+    return this.adminService.bulkDeleteUser(dto.ids);
+  }
 }
