@@ -100,6 +100,24 @@ export class AdminService {
     return updated;
   }
 
+  async demoteToMember(id: string): Promise<Profile> {
+    const profile = await this.prisma.profile.findUnique({ where: { id } });
+    if (!profile) throw new NotFoundException('User not found');
+
+    if (profile.role !== UserRole.ADMIN) {
+      throw new BadRequestException('User is not an admin');
+    }
+
+    const updated = await this.prisma.profile.update({
+      where: { id },
+      data: { role: UserRole.MEMBER },
+    });
+
+    await this.redis.del(CACHE_KEYS.USER_PROFILE(id));
+
+    return updated;
+  }
+
   async linkBody(id: string, dto: LinkBodyDto): Promise<Profile> {
     const profile = await this.prisma.profile.findUnique({ where: { id } });
     if (!profile) throw new NotFoundException('User not found');

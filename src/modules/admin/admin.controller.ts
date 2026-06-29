@@ -86,6 +86,16 @@ export class AdminController {
     return this.adminService.promoteToAdmin(id);
   }
 
+  @Put('users/:id/demote')
+  @ApiOperation({ summary: 'Demote admin to Member role (Admin only)' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: 200, description: 'User demoted to member' })
+  @ApiResponse({ status: 400, description: 'User is not an admin' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async demoteToMember(@Param('id', ParseUUIDPipe) id: string) {
+    return this.adminService.demoteToMember(id);
+  }
+
   @Put('users/:id/body')
   @ApiOperation({ summary: 'Link a body record to a user (Admin only)' })
   @ApiParam({ name: 'id', type: String })
