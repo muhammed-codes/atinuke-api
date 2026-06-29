@@ -216,4 +216,58 @@ export class AdminService {
     await this.redis.del(CACHE_KEYS.USER_PROFILE(id));
     return updated;
   }
+
+  async bulkApproveUser(ids: string[]): Promise<{ successful: string[]; failed: { id: string; reason: string }[] }> {
+    const successful: string[] = [];
+    const failed: { id: string; reason: string }[] = [];
+
+    await Promise.allSettled(
+      ids.map(async (id) => {
+        try {
+          await this.approveUser(id);
+          successful.push(id);
+        } catch (error: any) {
+          failed.push({ id, reason: error.message || 'Failed to approve user' });
+        }
+      }),
+    );
+
+    return { successful, failed };
+  }
+
+  async bulkDeclineUser(ids: string[]): Promise<{ successful: string[]; failed: { id: string; reason: string }[] }> {
+    const successful: string[] = [];
+    const failed: { id: string; reason: string }[] = [];
+
+    await Promise.allSettled(
+      ids.map(async (id) => {
+        try {
+          await this.declineUser(id);
+          successful.push(id);
+        } catch (error: any) {
+          failed.push({ id, reason: error.message || 'Failed to decline user' });
+        }
+      }),
+    );
+
+    return { successful, failed };
+  }
+
+  async bulkDeactivateUser(ids: string[]): Promise<{ successful: string[]; failed: { id: string; reason: string }[] }> {
+    const successful: string[] = [];
+    const failed: { id: string; reason: string }[] = [];
+
+    await Promise.allSettled(
+      ids.map(async (id) => {
+        try {
+          await this.deactivateUser(id);
+          successful.push(id);
+        } catch (error: any) {
+          failed.push({ id, reason: error.message || 'Failed to deactivate user' });
+        }
+      }),
+    );
+
+    return { successful, failed };
+  }
 }

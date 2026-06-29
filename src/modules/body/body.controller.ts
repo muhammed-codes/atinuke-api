@@ -33,6 +33,7 @@ import { CreateBodyDto } from './dto/create-body.dto';
 import { UpdateBodyDto } from './dto/update-body.dto';
 import { UpdateSpouseStatusDto } from './dto/update-spouse-status.dto';
 import { CreateNuclearFamilyDto } from './dto/create-nuclear-family.dto';
+import { BulkActionDto } from '../../common/dto/bulk-action.dto';
 
 @ApiTags('Body')
 @ApiBearerAuth()
@@ -157,6 +158,18 @@ export class BodyController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.bodyService.deleteBody(id, user.id);
+  }
+
+  @Post('bulk/delete')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Bulk delete body records (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Bulk delete processed' })
+  async bulkDeleteBody(
+    @Body() dto: BulkActionDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.bodyService.bulkDeleteBody(dto.ids, user.id);
   }
 
   @Delete(':id/spouse/:spouseId')

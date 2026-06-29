@@ -260,4 +260,76 @@ export class GalleryService {
       totalSizeBytes: sizeResult._sum.sizeBytes || 0,
     }));
   }
+
+  async bulkDeleteAlbums(ids: string[]): Promise<{ successful: string[]; failed: { id: string; reason: string }[] }> {
+    const successful: string[] = [];
+    const failed: { id: string; reason: string }[] = [];
+
+    await Promise.allSettled(
+      ids.map(async (id) => {
+        try {
+          await this.deleteAlbum(id);
+          successful.push(id);
+        } catch (error: any) {
+          failed.push({ id, reason: error.message || 'Failed to delete album' });
+        }
+      }),
+    );
+
+    return { successful, failed };
+  }
+
+  async bulkDeleteMedia(ids: string[]): Promise<{ successful: string[]; failed: { id: string; reason: string }[] }> {
+    const successful: string[] = [];
+    const failed: { id: string; reason: string }[] = [];
+
+    await Promise.allSettled(
+      ids.map(async (id) => {
+        try {
+          await this.softDeleteMedia(id);
+          successful.push(id);
+        } catch (error: any) {
+          failed.push({ id, reason: error.message || 'Failed to delete media' });
+        }
+      }),
+    );
+
+    return { successful, failed };
+  }
+
+  async bulkRestoreMedia(ids: string[]): Promise<{ successful: string[]; failed: { id: string; reason: string }[] }> {
+    const successful: string[] = [];
+    const failed: { id: string; reason: string }[] = [];
+
+    await Promise.allSettled(
+      ids.map(async (id) => {
+        try {
+          await this.restoreMedia(id);
+          successful.push(id);
+        } catch (error: any) {
+          failed.push({ id, reason: error.message || 'Failed to restore media' });
+        }
+      }),
+    );
+
+    return { successful, failed };
+  }
+
+  async bulkPermanentDeleteMedia(ids: string[]): Promise<{ successful: string[]; failed: { id: string; reason: string }[] }> {
+    const successful: string[] = [];
+    const failed: { id: string; reason: string }[] = [];
+
+    await Promise.allSettled(
+      ids.map(async (id) => {
+        try {
+          await this.permanentlyDeleteMedia(id);
+          successful.push(id);
+        } catch (error: any) {
+          failed.push({ id, reason: error.message || 'Failed to permanently delete media' });
+        }
+      }),
+    );
+
+    return { successful, failed };
+  }
 }

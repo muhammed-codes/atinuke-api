@@ -510,6 +510,24 @@ export class BodyService {
     this.eventEmitter.emit('tree-cache.invalidated', new TreeCacheInvalidatedEvent(actorId));
   }
 
+  async bulkDeleteBody(ids: string[], actorId: string): Promise<{ successful: string[]; failed: { id: string; reason: string }[] }> {
+    const successful: string[] = [];
+    const failed: { id: string; reason: string }[] = [];
+
+    await Promise.allSettled(
+      ids.map(async (id) => {
+        try {
+          await this.deleteBody(id, actorId);
+          successful.push(id);
+        } catch (error: any) {
+          failed.push({ id, reason: error.message || 'Failed to delete' });
+        }
+      }),
+    );
+
+    return { successful, failed };
+  }
+
   private async validateSpouseCount(bodyId: string, sex: Sex): Promise<void> {
     const maxSpouses = sex === Sex.FEMALE ? 1 : 4;
 

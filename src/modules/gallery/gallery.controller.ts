@@ -11,6 +11,7 @@ import { Roles } from '../../core/auth/decorators/roles.decorator';
 import { CurrentUser } from '../../core/auth/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/types/authenticated-user.type';
 import { ListMediaDto } from './dto/list-media.dto';
+import { BulkActionDto } from '../../common/dto/bulk-action.dto';
 
 @UseGuards(SupabaseJwtGuard)
 @Controller('gallery')
@@ -82,5 +83,27 @@ export class GalleryController {
   @Roles(UserRole.ADMIN)
   permanentlyDeleteMedia(@Param('id', ParseUUIDPipe) id: string) {
     return this.galleryService.permanentlyDeleteMedia(id);
+  }
+
+  @Post('albums/bulk/delete')
+  bulkDeleteAlbums(@Body() dto: BulkActionDto) {
+    return this.galleryService.bulkDeleteAlbums(dto.ids);
+  }
+
+  @Post('media/bulk/delete')
+  bulkDeleteMedia(@Body() dto: BulkActionDto) {
+    return this.galleryService.bulkDeleteMedia(dto.ids);
+  }
+
+  @Post('media/bulk/restore')
+  bulkRestoreMedia(@Body() dto: BulkActionDto) {
+    return this.galleryService.bulkRestoreMedia(dto.ids);
+  }
+
+  @Post('media/bulk/permanent')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  bulkPermanentDeleteMedia(@Body() dto: BulkActionDto) {
+    return this.galleryService.bulkPermanentDeleteMedia(dto.ids);
   }
 }

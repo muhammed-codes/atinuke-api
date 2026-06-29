@@ -24,6 +24,8 @@ import { Roles } from '../../core/auth/decorators/roles.decorator';
 import { CurrentUser } from '../../core/auth/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/types/authenticated-user.type';
 import { UserRole, ChronicleStatus } from '@prisma/client';
+import { BulkActionDto } from '../../common/dto/bulk-action.dto';
+import { BulkReviewChronicleDto } from './dto/bulk-review-chronicle.dto';
 
 @ApiTags('Chronicle')
 @ApiBearerAuth()
@@ -160,5 +162,39 @@ export class ChronicleController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.chronicleService.toggleLike(id, user.id);
+  }
+
+  @Post('bulk/approve')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Bulk approve pending chronicles or edits' })
+  @ApiResponse({ status: 200, description: 'Bulk approve processed' })
+  async bulkApproveChronicle(
+    @Body() dto: BulkActionDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.chronicleService.bulkApproveChronicle(dto.ids, user.id);
+  }
+
+  @Post('bulk/decline')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Bulk decline pending chronicles or edits' })
+  @ApiResponse({ status: 200, description: 'Bulk decline processed' })
+  async bulkDeclineChronicle(
+    @Body() dto: BulkReviewChronicleDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.chronicleService.bulkDeclineChronicle(dto.ids, { declineReason: dto.declineReason }, user.id);
+  }
+
+  @Post('bulk/delete')
+  @ApiOperation({ summary: 'Bulk delete chronicles' })
+  @ApiResponse({ status: 200, description: 'Bulk delete processed' })
+  async bulkDeleteChronicle(
+    @Body() dto: BulkActionDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.chronicleService.bulkDeleteChronicle(dto.ids, user);
   }
 }

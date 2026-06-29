@@ -24,6 +24,8 @@ import { AdminService } from './admin.service';
 import { LinkBodyDto } from './dto/link-body.dto';
 import { ListUsersDto } from './dto/list-users.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { BulkActionDto } from '../../common/dto/bulk-action.dto';
+import { Post } from '@nestjs/common';
 
 @ApiTags('Admin')
 @ApiBearerAuth()
@@ -116,5 +118,26 @@ export class AdminController {
     @Body() dto: UpdateUserDto,
   ) {
     return this.adminService.updateUserDetails(id, dto);
+  }
+
+  @Post('users/bulk/approve')
+  @ApiOperation({ summary: 'Bulk approve user accounts (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Bulk approve processed' })
+  async bulkApproveUser(@Body() dto: BulkActionDto) {
+    return this.adminService.bulkApproveUser(dto.ids);
+  }
+
+  @Post('users/bulk/decline')
+  @ApiOperation({ summary: 'Bulk decline user accounts (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Bulk decline processed' })
+  async bulkDeclineUser(@Body() dto: BulkActionDto) {
+    return this.adminService.bulkDeclineUser(dto.ids);
+  }
+
+  @Post('users/bulk/deactivate')
+  @ApiOperation({ summary: 'Bulk deactivate user accounts (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Bulk deactivate processed' })
+  async bulkDeactivateUser(@Body() dto: BulkActionDto) {
+    return this.adminService.bulkDeactivateUser(dto.ids);
   }
 }

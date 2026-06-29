@@ -508,4 +508,58 @@ export class ChronicleService {
     const likeCount = await this.prisma.chronicleLike.count({ where: { chronicleId } });
     return { liked: !existingLike, likeCount };
   }
+
+  async bulkApproveChronicle(ids: string[], reviewerId: string): Promise<{ successful: string[]; failed: { id: string; reason: string }[] }> {
+    const successful: string[] = [];
+    const failed: { id: string; reason: string }[] = [];
+
+    await Promise.allSettled(
+      ids.map(async (id) => {
+        try {
+          await this.approveChronicle(id, reviewerId);
+          successful.push(id);
+        } catch (error: any) {
+          failed.push({ id, reason: error.message || 'Failed to approve' });
+        }
+      }),
+    );
+
+    return { successful, failed };
+  }
+
+  async bulkDeclineChronicle(ids: string[], dto: ReviewChronicleDto, reviewerId: string): Promise<{ successful: string[]; failed: { id: string; reason: string }[] }> {
+    const successful: string[] = [];
+    const failed: { id: string; reason: string }[] = [];
+
+    await Promise.allSettled(
+      ids.map(async (id) => {
+        try {
+          await this.declineChronicle(id, dto, reviewerId);
+          successful.push(id);
+        } catch (error: any) {
+          failed.push({ id, reason: error.message || 'Failed to decline' });
+        }
+      }),
+    );
+
+    return { successful, failed };
+  }
+
+  async bulkDeleteChronicle(ids: string[], user: AuthenticatedUser): Promise<{ successful: string[]; failed: { id: string; reason: string }[] }> {
+    const successful: string[] = [];
+    const failed: { id: string; reason: string }[] = [];
+
+    await Promise.allSettled(
+      ids.map(async (id) => {
+        try {
+          await this.deleteChronicle(id, user);
+          successful.push(id);
+        } catch (error: any) {
+          failed.push({ id, reason: error.message || 'Failed to delete' });
+        }
+      }),
+    );
+
+    return { successful, failed };
+  }
 }
