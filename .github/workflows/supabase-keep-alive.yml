@@ -9,40 +9,18 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install Supabase Client
-        run: npm install @supabase/supabase-js --force
-
       - name: Ping Supabase to prevent auto-pause
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          node -e "
-          (async () => {
-            try {
-              const { createClient } = require('@supabase/supabase-js');
-              const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-              
-              // To prevent erroring on a non-existent table, we check 'rpc' or just any select and ignore the error if it's just 'relation does not exist'
-              const { data, error } = await supabase.from('keep_alive_ping').select('*').limit(1);
-              
-              if (error && error.code !== '42P01') {
-                // 42P01 is PostgreSQL code for 'relation does not exist'
-                throw error;
-              }
-              
-              console.log('Ping successful. Supabase (atinuke-api) is alive.');
-            } catch (err) {
-              console.error('Error pinging Supabase:', err.message || err);
-              process.exit(1);
-            }
-          })();
-          "
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/profiles?limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}")
+
+          echo "Response status: $STATUS"
+
+          if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 300 ]; then
+            echo "Ping failed with status $STATUS"
+            exit 1
+          fi
+
+          echo "Supabase (atinuke-api) is alive."
