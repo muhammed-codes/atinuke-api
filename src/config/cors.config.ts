@@ -5,7 +5,7 @@ const defaultAllowedOrigins = [
   "http://localhost:3001",
   "http://localhost:5173",
   "https://bello-admin-tree.vercel.app",
-  "https://atinukelineage.web.app/",
+  "https://atinukelineage.web.app",
 ];
 
 const normalizeOrigin = (origin: string) => origin.trim().replace(/\/$/, "");
@@ -18,7 +18,7 @@ export const getAllowedOrigins = () => {
     .filter((origin): origin is string => Boolean(origin))
     .map(normalizeOrigin);
 
-  return [...new Set([...defaultAllowedOrigins, ...envOrigins])];
+  return [...new Set([...defaultAllowedOrigins.map(normalizeOrigin), ...envOrigins])];
 };
 
 export const corsOptions: CorsOptions = {
