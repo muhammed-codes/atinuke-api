@@ -10,12 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: Install Supabase Client
         run: npm install @supabase/supabase-js --force
@@ -31,13 +31,17 @@ jobs:
               const { createClient } = require('@supabase/supabase-js');
               const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
               
-              // We just query a non-existent table or an existing one with limit(1) to register activity.
-              // This is sufficient for Supabase to recognize the project as active.
+              // To prevent erroring on a non-existent table, we check 'rpc' or just any select and ignore the error if it's just 'relation does not exist'
               const { data, error } = await supabase.from('keep_alive_ping').select('*').limit(1);
+              
+              if (error && error.code !== '42P01') {
+                // 42P01 is PostgreSQL code for 'relation does not exist'
+                throw error;
+              }
               
               console.log('Ping successful. Supabase (atinuke-api) is alive.');
             } catch (err) {
-              console.error('Error pinging Supabase:', err.message);
+              console.error('Error pinging Supabase:', err.message || err);
               process.exit(1);
             }
           })();
