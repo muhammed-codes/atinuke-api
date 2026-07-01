@@ -5,6 +5,7 @@ const defaultAllowedOrigins = [
   "http://localhost:3001",
   "http://localhost:5173",
   "https://bello-admin-tree.vercel.app",
+  "https://atinukelineage.web.app/",
 ];
 
 const normalizeOrigin = (origin: string) => origin.trim().replace(/\/$/, "");
@@ -36,6 +37,11 @@ export const corsOptions: CorsOptions = {
   },
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
   credentials: true,
-  allowedHeaders: ["Content-Type", "Accept", "Authorization", "X-Requested-With"],
+  allowedHeaders: [
+    "Content-Type",
+    "Accept",
+    "Authorization",
+    "X-Requested-With",
+  ],
   optionsSuccessStatus: 204,
 };
