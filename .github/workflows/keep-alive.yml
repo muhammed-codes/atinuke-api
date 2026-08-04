@@ -1,0 +1,52 @@
+name: Keep-Alive (Bello Admin)
+
+on:
+  schedule:
+    - cron: '0 17 * * 1,4' # Runs at 17:00 UTC (6 PM WAT) every Monday and Thursday
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install Supabase client
+        run: npm install @supabase/supabase-js
+
+      - name: Ping Supabase to prevent auto-pause (Bello Admin)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_BELLO_ADMIN }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY_BELLO_ADMIN }}
+        run: |
+          node -e "
+            if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+              console.error('❌ Missing SUPABASE_URL_BELLO_ADMIN or SUPABASE_SERVICE_ROLE_KEY_BELLO_ADMIN. Did you add them to GitHub Secrets?');
+              process.exit(1);
+            }
+            
+            const { createClient } = require('@supabase/supabase-js');
+            const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+            supabase
+              .from('keep-alive')
+              .select('name')
+              .limit(1)
+              .then(({ data, error }) => {
+                if (error) {
+                  console.error('❌ Ping failed:', error.message);
+                  console.error('Hint: Did you create the \`keep-alive\` table in your Supabase project?');
+                  process.exit(1);
+                }
+                console.log('✅ Supabase (BELLO_ADMIN) is alive. Result:', JSON.stringify(data));
+              }).catch(err => {
+                console.error('❌ Unexpected error:', err.message);
+                process.exit(1);
+              });
+          "
